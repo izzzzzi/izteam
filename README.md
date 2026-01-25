@@ -16,6 +16,8 @@ Then install any plugin:
 /plugin install <plugin-name>@ilia-izmailov-plugins
 ```
 
+**Important:** Restart Claude Code after installing plugins to load them.
+
 ## Available Plugins
 
 ### think-through
