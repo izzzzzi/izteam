@@ -9,7 +9,7 @@ description: |
   assistant: "Запускаю usage-analyzer для детального анализа использования"
   </example>
 
-model: sonnet
+model: opus
 tools:
   - Read
   - Grep

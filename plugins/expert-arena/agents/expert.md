@@ -7,7 +7,7 @@ tools:
   - Read
   - WebSearch
   - WebFetch
-model: sonnet
+model: opus
 ---
 
 # Эксперт-дебатёр — Органические дебаты

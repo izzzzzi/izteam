@@ -6,7 +6,7 @@ description: |
   "audit design system", "find unused components", "clean up UI",
   "check design-system for dead code".
 
-model: sonnet
+model: opus
 tools:
   - Glob
   - Grep

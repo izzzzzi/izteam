@@ -39,7 +39,7 @@ description: |
   </commentary>
   </example>
 
-model: sonnet
+model: opus
 color: yellow
 tools:
   - Read
