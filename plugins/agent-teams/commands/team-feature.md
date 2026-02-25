@@ -11,6 +11,7 @@ allowed-tools:
   - TaskList
   - Task
   - Read
+  - Write
   - Glob
   - Grep
   - Bash
@@ -71,10 +72,10 @@ The `.conventions/` directory is the **single source of truth** for project patt
 
 | Role | Lifetime | Communicates with | Responsibility |
 |------|----------|-------------------|----------------|
-| **You (Lead)** | Whole session | Everyone | Dispatch researchers, plan, orchestrate, define Definition of Done |
+| **You (Lead)** | Whole session | Everyone (sparingly) | Dispatch researchers, plan, spawn team, monitor DONE/STUCK in Phase 2 |
 | **Researcher** | One-shot | Lead only | Explore codebase or web, return findings with FULL file content |
-| **Tech Lead** | Whole session | Lead + Coders | Validate plan, architectural review, DECISIONS.md |
-| **Coder** | Per task | Lead + Reviewers + Tech Lead | Read gold standards, implement matching patterns, self-check, fix feedback, commit |
+| **Tech Lead** | Whole session | Lead (planning) + Coders (directly) | Validate plan, architectural review, DECISIONS.md |
+| **Coder** | Per task | Reviewers + Tech Lead (directly), Lead (DONE/STUCK) | Implement, self-check, request review directly, fix feedback, commit |
 | **Security Reviewer** | Whole session | Coder only | Injection, XSS, auth bypasses, IDOR, secrets |
 | **Logic Reviewer** | Whole session | Coder only | Race conditions, edge cases, null handling, async |
 | **Quality Reviewer** | Whole session | Coder only | DRY, naming, abstractions, CLAUDE.md + conventions compliance |
@@ -445,15 +446,50 @@ After Tech Lead validates the plan, run a pre-implementation risk analysis to ca
 
 **Real-world example:** See `references/risk-testing-example.md` for a detailed case study of how risk analysis caught a silent data loss bug (wrong cursor field) that post-implementation review would have missed.
 
-#### Step 5: Spawn coders (reviewers spawn lazily in Phase 2)
+#### Step 5: Spawn entire team and write state file
 
-**Spawn Coders** (up to --coders in parallel, uses `agents/coder.md`):
+Spawn everyone NOW — reviewers, tech-lead, and coders. Do not defer reviewer spawning. This eliminates stateful tracking that breaks under context compaction.
+
+**1. Reviewers** (permanent, spawned eagerly):
+
+For MEDIUM/COMPLEX — spawn all 3 in parallel:
+```
+Task(subagent_type="agent-teams:security-reviewer", team_name="feature-<short-name>", name="security-reviewer",
+  prompt="You are the security reviewer for team feature-<short-name>.
+Wait for REVIEW requests from coders via SendMessage.")
+
+Task(subagent_type="agent-teams:logic-reviewer", team_name="feature-<short-name>", name="logic-reviewer",
+  prompt="You are the logic reviewer for team feature-<short-name>.
+Wait for REVIEW requests from coders via SendMessage.")
+
+Task(subagent_type="agent-teams:quality-reviewer", team_name="feature-<short-name>", name="quality-reviewer",
+  prompt="You are the quality reviewer for team feature-<short-name>.
+Wait for REVIEW requests from coders via SendMessage.
+Gold standard references for this feature: [list reference files from researcher findings].")
+```
+
+For SIMPLE — spawn unified reviewer instead:
+```
+Task(subagent_type="agent-teams:unified-reviewer", team_name="feature-<short-name>", name="unified-reviewer",
+  prompt="You are the unified reviewer for team feature-<short-name>.
+Wait for REVIEW requests from coders via SendMessage.
+If code touches auth/payments/migrations, send ESCALATE TO MEDIUM to Lead.")
+```
+
+**2. Coders** (up to --coders in parallel, uses `agents/coder.md`):
+
+Tell each coder their team roster so they can communicate directly:
 ```
 Task(
   subagent_type="agent-teams:coder",
   team_name="feature-<short-name>",
   name="coder-<N>",
   prompt="You are Coder #{N}. Team: feature-<short-name>.
+
+YOUR TEAM ROSTER (communicate directly via SendMessage):
+- Reviewers: security-reviewer, logic-reviewer, quality-reviewer
+- Tech Lead: tech-lead
+- Lead: for DONE/STUCK signals only
 
 YOUR TASK CONTEXT:
 {Brief summary of what this coder will work on — from task descriptions}
@@ -466,123 +502,103 @@ Claim your first task from the task list and start working."
 )
 ```
 
-The coder agent file (`agents/coder.md`) contains the full workflow (self-check, escalation protocol, communication format). The spawn prompt provides task context first, then gold standard examples — this is the task-specific context that changes per feature.
+For SIMPLE tasks, tell coders: `Reviewers: unified-reviewer` (no separate reviewers, no tech-lead in roster).
 
-### Phase 2: Execution Loop
+**3. Write initial state file** (for compaction resilience):
+```
+Write(".claude/teams/{team-name}/state.md"):
 
-For each coder that reports "READY FOR REVIEW":
+# Team State — feature-{name}
 
-1. **Smoke test** (Lead checks quickly before involving reviewers):
+## Recovery Instructions
+If you lost context after compaction, read this file. Your role in Phase 2:
+- Listen for DONE/STUCK/ESCALATE from team members
+- DO NOT read code, run checks, or notify reviewers — coders do that directly
+- Update this file after each event
+
+## Phase: EXECUTION
+## Complexity: {SIMPLE | MEDIUM | COMPLEX}
+
+## Team Roster
+- tech-lead: ACTIVE
+- security-reviewer: {ACTIVE | NOT_SPAWNED}
+- logic-reviewer: {ACTIVE | NOT_SPAWNED}
+- quality-reviewer: {ACTIVE | NOT_SPAWNED}
+- unified-reviewer: {ACTIVE | NOT_SPAWNED}
+
+## Tasks
+- #{id}: {subject} — {STATUS} ({assignment})
+
+## Active Coders: {N} (max: {M})
+```
+
+Coders drive their own review process via SendMessage to reviewers and tech-lead. Lead is NOT in the review loop.
+
+### Phase 2: Monitor Mode
+
+**Your role is MINIMAL.** Coders communicate directly with reviewers and tech-lead via SendMessage. You only handle progress tracking and exceptional events.
+
+#### What you do:
+
+| Event from team member | Your action |
+|------------------------|-------------|
+| Coder: `IN_REVIEW: task #N` | Update state.md (mark IN_REVIEW). No other action needed. |
+| Coder: `DONE: task #N` | Update state.md (mark completed). If unassigned tasks remain AND active coders < max, spawn new coder with team roster. |
+| Coder: `DONE: task #N, claiming task #M` | Update state.md (mark #N completed, #M in progress by same coder). No spawn needed — coder already claimed next task. |
+| Coder: `DONE: task #N. ALL MY TASKS COMPLETE` | Update state.md. Check if ALL tasks done → Phase 3. If unassigned remain, spawn new coder. |
+| Coder: `QUESTION: task #N. [question]` | Answer from your Phase 1 context if you can. If not — dispatch a researcher (Explore or general-purpose with WebSearch), then SendMessage the answer to coder. |
+| Coder: `STUCK: task #N` | Dispatch a researcher to investigate. Adjust task description or reassign to different coder. |
+| Coder: `REVIEW_LOOP: task #N` | Dispatch a researcher to read code + review feedback. SendMessage to coder with concrete fix. |
+| Unified reviewer: `ESCALATE TO MEDIUM` | Spawn 3 specialized reviewers (security, logic, quality). SendMessage to coder with updated team roster. |
+
+#### What you do NOT do:
+
+- Do NOT read code files or review code
+- Do NOT run smoke tests or convention checks (coders do self-checks in Step 4)
+- Do NOT notify reviewers about completed tasks (coders message them directly)
+- Do NOT notify tech-lead about reviews (coders message tech-lead directly)
+- Do NOT forward messages between team members (they communicate directly)
+- Do NOT spawn enabling agents
+
+#### State file updates:
+
+After every event, update `.claude/teams/{team-name}/state.md`:
+- Task status: UNASSIGNED → IN_PROGRESS(coder-N) → IN_REVIEW(coder-N) → COMPLETED
+- Coder spawns/shutdowns
+- Reviewer escalations
+
+#### Compaction recovery:
+
+If your context feels incomplete or you cannot remember the current state:
+1. Read `.claude/teams/{team-name}/state.md`
+2. Follow the Recovery Instructions in the file
+3. Continue monitoring from the current phase
+
+**This is your safety net.** The state file contains everything you need to recover after context compaction.
+
+#### Spawning new coders:
+
+When a coder reports "DONE" and unassigned tasks remain:
+1. Update state.md (mark task completed)
+2. If active coders < max AND unassigned tasks exist:
    ```
-   Quick sanity check:
-   - Does the code touch files listed in the task description? (not random other files)
-   - Is the approach consistent with the task requirements?
-   - Did the coder actually implement what was asked? (not something else)
+   Task(
+     subagent_type="agent-teams:coder",
+     team_name="feature-<short-name>",
+     name="coder-<N>",
+     prompt="You are Coder #{N}. Team: feature-<short-name>.
 
-   If WRONG → send back to coder with specific feedback:
-   SendMessage to coder-<N>:
-   "Smoke test failed: [specific issue — e.g., 'Task asks for settings endpoint but you created a preferences endpoint']
-   Fix and re-submit."
+   YOUR TEAM ROSTER:
+   {current roster from state.md}
 
-   If OK → proceed to convention checks.
+   --- GOLD STANDARD EXAMPLES ---
+   {GOLD STANDARD BLOCK}
+   --- END GOLD STANDARDS ---
+
+   Claim your next task from the task list and start working."
+   )
    ```
-
-2. **Run automated convention checks** (Lead runs directly):
-   ```
-   Quick check against task-specific convention rules:
-   - File names match expected pattern?
-   - New DB columns/tables follow naming convention?
-   - Imports use design system components (not raw HTML/third-party)?
-
-   If obvious violations found → send back to coder with specific fix:
-   SendMessage to coder-<N>:
-   "Convention check failed:
-   - settings-router.ts should be settings.ts (convention: singular, no suffix)
-   - Table 'userSettings' should be 'user_settings' (convention: snake_case)
-   Fix these and re-submit."
-
-   If checks pass → proceed to reviewers.
-   ```
-
-   **Spawn reviewers on first READY FOR REVIEW** (lazy — not at setup):
-   ```
-   If this is the first review request AND complexity is MEDIUM/COMPLEX:
-     Spawn 3 permanent reviewers (security-reviewer, logic-reviewer, quality-reviewer)
-     — see agents/ for their full methodology
-
-   If this is the first review request AND complexity is SIMPLE:
-     Spawn unified-reviewer instead
-   ```
-
-3. **Notify all 3 permanent reviewers** (send messages in parallel):
-   ```
-   SendMessage to security-reviewer:
-   "Review task #{id} by @coder-<N>. Files: [list from coder's message]"
-
-   SendMessage to logic-reviewer:
-   "Review task #{id} by @coder-<N>. Files: [list from coder's message]"
-
-   SendMessage to quality-reviewer:
-   "Review task #{id} by @coder-<N>. Files: [list from coder's message].
-   Gold standard references for this task: [list reference files].
-   Check convention compliance against these references."
-   ```
-
-4. **Trigger enabling agents if needed** (one-shot, NOT team members):
-
-   Check the file list and spawn additional deep-analysis agents when the code touches sensitive areas:
-
-   ```
-   If files touch auth/payments/billing/subscriptions:
-     Task(subagent_type="deep-refactoring:security", prompt="Analyze files: [list]. Send findings summary back.")
-     Task(subagent_type="deep-refactoring:business-logic", prompt="Analyze files: [list]. Send findings summary back.")
-
-   If files touch database/prisma/SQL/migrations:
-     Task(subagent_type="deep-refactoring:database-integrity", prompt="Analyze files: [list]. Send findings summary back.")
-
-   If files call external APIs (fetch, axios, http):
-     Task(subagent_type="deep-refactoring:external-systems", prompt="Analyze files: [list]. Send findings summary back.")
-   ```
-
-   When enabling agents return findings, forward them to the coder:
-   ```
-   SendMessage to coder-<N>:
-   "Additional findings from deep analysis:\n[enabling agent results]"
-   ```
-
-5. **After reviewers finish** (they go idle), **notify Tech Lead**:
-   ```
-   SendMessage to tech-lead:
-   "Please review task #{id} by @coder-<N>.
-   Files changed: [list]. Reviewers have finished their review."
-   ```
-
-6. **Wait for Tech Lead response:**
-   - "APPROVED: task N" → Coder commits and moves on
-   - Feedback → Tech Lead already sent it to coder, coder fixes
-
-7. **After coder reports "DONE":**
-   - Shut down the coder (SendMessage type=shutdown_request)
-   - If tasks remain → spawn a new coder for the next unassigned task
-   - Reviewers stay alive for the next review cycle
-
-8. **Track review patterns** — keep mental note of recurring issues:
-   - Same naming violation found 2+ times → convention gap (address in Phase 3)
-   - Same design system issue 2+ times → missing gold standard (address in Phase 3)
-
-### Context Cycling (for long sessions)
-
-For features with many tasks:
-- **Every 4 review cycles:** Send message to Tech Lead: "STATUS CHECK: Re-read DECISIONS.md and confirm it's up to date. Any architectural concerns after seeing {N} tasks?"
-- **Every 3 completed tasks:** Write a checkpoint file at `.claude/teams/{team-name}/checkpoint.md`:
-  ```
-  # Checkpoint — {timestamp}
-  Tasks completed: {list}
-  Tasks remaining: {list}
-  Key decisions: {summary from DECISIONS.md}
-  Recurring issues: {patterns noticed}
-  ```
-  This protects against context window pressure in long sessions.
+3. Update state.md with new coder
 
 ### Phase 3: Completion & Verification
 
@@ -687,7 +703,7 @@ When things go wrong, handle it yourself — don't involve the user:
 | Situation | Action |
 |-----------|--------|
 | Coder reports STUCK | Dispatch a researcher to investigate the problem. Then: adjust the task, split it, or assign to a different coder. |
-| Review is looping (same issue raised 3+ times without progress) | The problem is likely a misunderstanding, not bad code. Read the feedback yourself, clarify the issue to the coder with a concrete fix. Do NOT tell the reviewer to accept — the code must actually be fixed. |
+| Coder reports REVIEW_LOOP (3+ review rounds on same task) | The problem is likely a misunderstanding between coder and reviewer. Dispatch a researcher to read the code and review feedback, then SendMessage to coder with a concrete fix. Do NOT tell the reviewer to accept — the code must actually be fixed. |
 | Tech Lead rejects architecture > 2 times | Review the disagreement yourself. If you need more context, dispatch a web researcher. Make the final call, document in DECISIONS.md. |
 | Coder escalates "pattern doesn't fit" | Forward to Tech Lead for decision. If Tech Lead unsure, dispatch a web researcher for best practices. Document decision in DECISIONS.md. |
 | Build/tests fail after all tasks | Create targeted fix tasks. Only fix what's broken, don't redo completed work. |
@@ -702,7 +718,7 @@ When things go wrong, handle it yourself — don't involve the user:
 - **Full autonomy** — you make ALL decisions, never ask the user for clarification
 - **Protect your context** — dispatch researchers instead of reading files yourself. You receive findings, not raw search results. Exception: `.conventions/` gold standards are short and you read them yourself.
 - **Gold standards in every coder prompt** — coders MUST receive canonical examples as few-shot context. This is the #1 lever for code quality (+15-40% accuracy vs instructions alone).
-- **Convention checks before review** — catch naming/structure violations BEFORE reviewers see the code. Prevention > detection.
+- **Coders self-check before review** — coders run convention checks themselves (Step 4) before requesting review. Lead does NOT check.
 - **Escalation, not silent deviation** — when a pattern doesn't fit, coders escalate to Tech Lead, not silently deviate. Every approved deviation is documented in DECISIONS.md.
 - **Never implement tasks yourself** — you are the orchestrator only (delegate mode)
 - **One file = one coder** — never assign overlapping files to different coders
@@ -710,12 +726,15 @@ When things go wrong, handle it yourself — don't involve the user:
 - **Definition of Done** — define it from researcher findings + CLAUDE.md + conventions, include in DECISIONS.md
 - **Validate before executing** — Tech Lead reviews the plan before coders start (skip for SIMPLE tasks)
 - **Risk analysis before coding** — Tech Lead identifies risks, risk testers verify them, mitigations added to tasks BEFORE code is written (skip for SIMPLE tasks). Prevention > detection.
-- **Reviewers → Coder, not Lead** — reviewers send findings directly to the coder
-- **Reviewers are permanent** — spawned lazily on first review request, review ALL tasks throughout the session
+- **Coders drive review** — coders send review requests directly to reviewers and tech-lead via SendMessage. Lead is NOT in the review loop.
+- **Reviewers are permanent** — spawned eagerly at setup (Step 5), review ALL tasks throughout the session
 - **Tech Lead is permanent** — spawned once, validates plan, reviews all tasks, handles escalations, maintains DECISIONS.md
 - **Coders are temporary** — spawned per task, killed after completion
 - **Researchers are one-shot** — spawned for specific questions, return findings, done. Can be dispatched anytime.
 - **Enabling agents are one-shot** — spawned per trigger when files touch sensitive areas, not team members
 - **Verify at the end** — build + tests must pass before declaring completion
 - **Propose convention updates** — after every feature, check for recurring issues and new patterns. Propose `.conventions/` updates to the user.
-- Always wait for both reviewers AND tech lead before letting coder commit
+- **Coders collect approvals** — coders wait for all reviewers + tech-lead before committing, then report DONE to Lead
+- **State file for resilience** — update `.claude/teams/{team-name}/state.md` after every event. Read it to recover after compaction.
+- **Monitor mode in Phase 2** — Lead tracks DONE/STUCK/QUESTION signals. Does NOT read code, run checks, or relay messages.
+- **Lead as knowledge hub** — Lead has the richest context from Phase 1 research. Coders ask QUESTION when info is missing — Lead answers or dispatches researcher.

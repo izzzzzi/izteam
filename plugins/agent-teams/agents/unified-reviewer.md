@@ -37,6 +37,7 @@ tools:
   - Glob
   - LSP
   - Bash
+  - SendMessage
 ---
 
 <role>
