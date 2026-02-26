@@ -16,6 +16,7 @@ allowed-tools:
   - Grep
   - Bash
 argument-hint: "<description or path/to/plan.md> [--coders=N]"
+model: opus
 ---
 
 # Team Feature — Implementation Pipeline with Review Gates

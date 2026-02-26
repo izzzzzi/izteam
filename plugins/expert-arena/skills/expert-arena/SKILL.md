@@ -1,10 +1,6 @@
 ---
 name: expert-arena
 description: Arena экспертных дебатов — динамический подбор экспертов, исследование, органические дебаты с прямой коммуникацией до конвергенции
-arguments:
-  - name: question
-    description: Вопрос или задача для экспертных дебатов
-    required: true
 allowed-tools:
   - TeamCreate
   - TeamDelete
@@ -19,6 +15,7 @@ allowed-tools:
   - Grep
   - Bash
 argument-hint: "<вопрос для дебатов>"
+model: opus
 ---
 
 # Expert Arena — Модератор органических дебатов

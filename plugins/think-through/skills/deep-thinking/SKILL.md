@@ -1,10 +1,8 @@
 ---
 name: deep-thinking
 description: Deep structured thinking — breakdown, parallel expert analysis, summary with recommendations
-arguments:
-  - name: task
-    description: Task or idea to think through
-    required: true
+argument-hint: "<task or idea to think through>"
+model: opus
 ---
 
 # Structured Thinking
