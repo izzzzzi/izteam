@@ -288,9 +288,13 @@ The file serves two purposes:
 
 ### Step 4: Hand off to /team-feature
 
+The brief already contains Project Context from Phase 0 researchers — no need for team-feature to re-research the codebase.
+
 ```
-Skill("team-feature", args="Feature brief saved to .briefs/[feature-name].md — read it and implement. Use the Review Checklist as acceptance criteria for code review.")
+Skill("team-feature", args=".briefs/[feature-name].md --no-research")
 ```
+
+This skips codebase-researcher (brief has project context) and reference-researcher (team-feature will check .conventions/ itself). If .conventions/ doesn't exist, team-feature will spawn only reference-researcher as needed.
 
 ---
 

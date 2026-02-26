@@ -43,6 +43,7 @@ The ONLY reason to contact the user is if the task is so vague you can't even be
 - **String**: Feature description — you decompose it into tasks yourself
 - **File path** (`.md`): Read the plan file and create tasks from it
 - **`--coders=N`**: Max parallel coders (default: 3)
+- **`--no-research`**: Skip all research (codebase + reference). Use when context is already in the prompt or brief.
 
 ## Conventions System
 
@@ -99,11 +100,32 @@ Only read what's tiny and critical:
 
 That's it. Do NOT read package.json, source files, or explore deeply yourself.
 
-#### Step 2: Dispatch researchers (parallel, one-shot)
+#### Step 2: Dispatch researchers (conditional)
 
-Spawn 2-3 researcher agents to bring you the information you need. They explore deeply and return findings — your context stays clean.
+Research is **adaptive** — skip what you already know, research what you don't.
 
-**Always spawn these two in parallel:**
+**Decision algorithm:**
+
+```
+1. Check --no-research flag → if set, skip ALL research entirely
+2. Check if input contains a brief file (e.g., .briefs/*.md from /interviewed-team-feature)
+   → If YES: read the brief. It already has Project Context section.
+3. Evaluate what you HAVE vs what you NEED:
+
+   NEED for planning:
+   a) Codebase context: stack, structure, affected layers, build/test commands
+   b) Reference files: actual file contents for gold standard examples
+
+   CHECK (a): Does input/brief contain stack, directory structure, and key patterns?
+   → YES: skip codebase-researcher
+   → NO: spawn codebase-researcher
+
+   CHECK (b): Does .conventions/gold-standards/ exist with relevant examples?
+   → YES: you already read them in Step 1, skip reference-researcher
+   → NO: spawn reference-researcher
+```
+
+**When BOTH researchers needed** (no brief, no .conventions/):
 
 ```
 Task(
@@ -118,7 +140,20 @@ Find canonical reference files for each layer this feature touches."
 )
 ```
 
-The agent files (`agents/codebase-researcher.md` and `agents/reference-researcher.md`) contain the full methodology and output format — the spawn prompt only needs the feature description.
+**When only reference-researcher needed** (brief provides codebase context, but no .conventions/):
+
+```
+Task(
+  subagent_type="agent-teams:reference-researcher",
+  prompt="Feature to implement: '{feature description}'.
+Find canonical reference files for each layer this feature touches.
+Project context: {stack and structure from brief}"
+)
+```
+
+**When NEITHER needed** (brief + .conventions/ with relevant gold standards, or --no-research):
+
+Skip directly to Step 3. Use context from brief + .conventions/ for planning.
 
 **Optionally spawn a web researcher** if the feature requires external knowledge:
 
@@ -135,7 +170,7 @@ Task(
   3. Common pitfalls to avoid
   4. A brief example of the pattern
 
-  Context: The project uses {stack from codebase researcher}.
+  Context: The project uses {stack from brief or codebase researcher}.
 
   Return a CONDENSED recommendation (10-20 lines max):
   - Recommended approach + why
