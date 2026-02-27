@@ -98,6 +98,8 @@ Tech Lead identifies what could go wrong, then Risk Testers verify each risk by 
 
 #### Phase 2: Execution
 
+An always-on Supervisor monitors team health throughout execution — tracking liveness, detecting review loops, and coordinating escalations.
+
 **Step 5 — Coding with Gold Standards**
 
 Coders receive their task along with gold standard examples — real files from your project that show "this is how we do things here". Each coder:
@@ -156,6 +158,8 @@ Only after Tech Lead approval does the coder commit.
 
 #### Phase 3: Completion
 
+The team shuts down through a deterministic teardown protocol — roster-driven shutdown with ACK/retry, Supervisor validates readiness before TeamDelete.
+
 **Step 9 — Integration Verification**
 
 Lead runs build + full test suite. If anything fails → creates a targeted fix task that goes through the same review pipeline.
@@ -203,15 +207,16 @@ These conventions are used by `/team-feature` as few-shot examples for coders. Y
 
 | Level | Team Size | Reviewers | Risk Analysis | Tech Lead Validation |
 |-------|-----------|-----------|---------------|---------------------|
-| **SIMPLE** | 3 agents | 1 unified | Skipped | Skipped |
-| **MEDIUM** | 4-6 agents | 3 specialized | Yes | Yes |
-| **COMPLEX** | 5-8+ agents | 3 specialized + deep analysis | Full + risk testers | Yes + user notified on key decisions |
+| **SIMPLE** | 4 agents | 1 unified | Skipped | Skipped |
+| **MEDIUM** | 5-7 agents | 3 specialized | Yes | Yes |
+| **COMPLEX** | 6-9+ agents | 3 specialized + deep analysis | Full + risk testers | Yes + user notified on key decisions |
 
 ## Team Roles
 
 | Role | Lifetime | Purpose |
 |------|----------|---------|
 | **Lead** | Whole session | Orchestrates the pipeline, protects own context by delegating research |
+| **Supervisor** | Permanent | Always-on operational monitor — tracks liveness, detects loops/deadlocks, coordinates escalations, gates teardown |
 | **Codebase Researcher** | One-shot | Returns condensed project summary (structure, stack, patterns) |
 | **Reference Researcher** | One-shot | Returns full content of best example files for each layer |
 | **Tech Lead** | Permanent | Validates plan, reviews architecture, handles escalations, maintains DECISIONS.md |
@@ -228,10 +233,14 @@ These conventions are used by `/team-feature` as few-shot examples for coders. Y
 agent-teams/
 ├── .claude-plugin/
 │   └── plugin.json
-├── commands/
-│   ├── team-feature.md
-│   └── conventions.md
+├── skills/
+│   ├── team-feature/SKILL.md
+│   ├── conventions/SKILL.md
+│   └── interviewed-team-feature/
+│       ├── SKILL.md
+│       └── references/interview-principles.md
 ├── agents/
+│   ├── supervisor.md
 │   ├── codebase-researcher.md
 │   ├── reference-researcher.md
 │   ├── tech-lead.md

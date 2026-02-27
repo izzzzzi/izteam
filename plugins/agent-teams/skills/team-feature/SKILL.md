@@ -1,6 +1,6 @@
 ---
 name: team-feature
-description: Launch Agent Team for feature implementation with review gates (coders + specialized reviewers + tech lead)
+description: Launch Agent Team for feature implementation with always-on Supervisor and review gates (coders + reviewers + tech lead)
 allowed-tools:
   - TeamCreate
   - TeamDelete
@@ -74,13 +74,14 @@ The `.conventions/` directory is the **single source of truth** for project patt
 
 | Role | Lifetime | Communicates with | Responsibility |
 |------|----------|-------------------|----------------|
-| **You (Lead)** | Whole session | Everyone (sparingly) | Dispatch researchers, plan, spawn team, monitor DONE/STUCK in Phase 2 |
+| **You (Lead)** | Whole session | Everyone (sparingly) | Dispatch researchers, plan, spawn team, make decisions and staffing actions |
+| **Supervisor** | Whole session (always-on) | Lead + all roles (operational events only) | Own operational monitoring, liveness/loop/dedup detection, escalation routing, teardown readiness, and operational `state.md` transitions |
 | **Researcher** | One-shot | Lead only | Explore codebase or web, return findings with FULL file content |
-| **Tech Lead** | Whole session | Lead (planning) + Coders (directly) | Validate plan, architectural review, DECISIONS.md |
-| **Coder** | Per task | Reviewers + Tech Lead (directly), Lead (DONE/STUCK) | Implement, self-check, request review directly, fix feedback, commit |
-| **Security Reviewer** | Whole session | Coder only | Injection, XSS, auth bypasses, IDOR, secrets |
-| **Logic Reviewer** | Whole session | Coder only | Race conditions, edge cases, null handling, async |
-| **Quality Reviewer** | Whole session | Coder only | DRY, naming, abstractions, CLAUDE.md + conventions compliance |
+| **Tech Lead** | Whole session | Lead (planning/architecture) + Coders (directly) | Validate plan, architectural review, DECISIONS.md architectural decisions |
+| **Coder** | Per task | Reviewers + Tech Lead (directly), Supervisor (operational signals), Lead (decisions/staffing only) | Implement, self-check, request review directly, fix feedback, commit |
+| **Security Reviewer** | Whole session | Coder only (reviews), Supervisor for SLA signals | Injection, XSS, auth bypasses, IDOR, secrets |
+| **Logic Reviewer** | Whole session | Coder only (reviews), Supervisor for SLA signals | Race conditions, edge cases, null handling, async |
+| **Quality Reviewer** | Whole session | Coder only (reviews), Supervisor for SLA signals | DRY, naming, abstractions, CLAUDE.md + conventions compliance |
 
 ## Protocol
 
@@ -258,15 +259,29 @@ FINAL: [SIMPLE / MEDIUM / COMPLEX] (mandatory, not overridable)
 - Full risk analysis with risk testers
 - If coder flags "pattern doesn't fit" → Lead decides or escalates to user
 
-**Team Roster by Complexity:**
+**Team Roster by Complexity (Supervisor is mandatory in all modes):**
 
 | Complexity | Team Composition | Total Agents |
 |-----------|------------------|--------------|
-| SIMPLE | Lead + Coder + Unified Reviewer | 3 |
-| MEDIUM | Lead + Coder + 1-3 Reviewers + Tech Lead | 4-6 |
-| COMPLEX | Lead + Coder(s) + 3 Reviewers + Tech Lead + Researchers + Risk Testers | 5-8+ |
+| SIMPLE | Lead + Supervisor + Coder + Unified Reviewer | 4 |
+| MEDIUM | Lead + Supervisor + Coder + 1-3 Reviewers + Tech Lead | 5-7 |
+| COMPLEX | Lead + Supervisor + Coder(s) + 3 Reviewers + Tech Lead + Researchers + Risk Testers | 6-9+ |
 
-For SIMPLE tasks: spawn `agent-teams:unified-reviewer` instead of 3 separate reviewers. The unified reviewer covers security basics, logic, and quality in one pass. If it detects sensitive code → it escalates to MEDIUM automatically.
+For SIMPLE tasks: spawn `agent-teams:unified-reviewer` instead of 3 separate reviewers. The unified reviewer covers security basics, logic, and quality in one pass. If it detects sensitive code → it emits `ESCALATE TO MEDIUM` to Supervisor (not Lead directly).
+
+**Roster-scoped approval matrix (single source of truth):**
+
+| Runtime mode | Required approvals to pass task gate |
+|---|---|
+| SIMPLE (not escalated) | `unified-reviewer` |
+| SIMPLE escalated to MEDIUM | `security-reviewer` + `logic-reviewer` + `quality-reviewer` + `tech-lead` |
+| MEDIUM | Active reviewer set for this task (subset of `{security-reviewer, logic-reviewer, quality-reviewer}` decided by Lead/Tech Lead) + `tech-lead` |
+| COMPLEX | `security-reviewer` + `logic-reviewer` + `quality-reviewer` + `tech-lead` |
+
+Wait rules are roster-scoped at runtime:
+- Required approvers are computed from complexity/mode and `Team Roster` in `state.md`.
+- Never wait on roles that are not ACTIVE in roster.
+- If a required approver is missing from ACTIVE roster, fail fast with `IMPOSSIBLE_WAIT` and escalate/stuck instead of waiting indefinitely.
 
 Now plan:
 
@@ -482,11 +497,46 @@ After Tech Lead validates the plan, run a pre-implementation risk analysis to ca
 
 **Real-world example:** See `references/risk-testing-example.md` for a detailed case study of how risk analysis caught a silent data loss bug (wrong cursor field) that post-implementation review would have missed.
 
-#### Step 5: Spawn entire team and write state file
+#### Step 5: Spawn always-on Supervisor, then team, then state handoff
 
-Spawn everyone NOW — reviewers, tech-lead, and coders. Do not defer reviewer spawning. This eliminates stateful tracking that breaks under context compaction.
+Spawn Supervisor first and keep it alive for the full lifecycle. Reviewers/tech-lead/coders are then spawned by complexity.
 
-**1. Reviewers** (permanent, spawned eagerly):
+**1. Supervisor** (permanent, mandatory in all modes):
+```
+Task(
+  subagent_type="agent-teams:supervisor",
+  team_name="feature-<short-name>",
+  name="supervisor",
+  prompt="You are the always-on Supervisor for team feature-<short-name>.
+Own operational monitoring and state transitions in state.md.
+Wait for STATE_OWNERSHIP_HANDOFF from Lead, then acknowledge and run monitor mode."
+)
+```
+
+**2. Producer-side handoff + ownership routing contract (Lead -> Supervisor):**
+
+| event | producer | consumer | route-owner | state-write-owner | next step |
+|---|---|---|---|---|---|
+| `STATE_OWNERSHIP_HANDOFF` | Lead | Supervisor | Lead -> Supervisor | Supervisor | Supervisor validates monotonic epoch and emits `STATE_OWNERSHIP_ACK(epoch)` |
+| `STATE_OWNERSHIP_ACK` | Supervisor | Lead | Supervisor -> Lead | Supervisor | Activate `Supervisor@epoch` as single operational writer |
+| `HANDOFF_DUPLICATE` | Supervisor | Lead | Supervisor -> Lead | Supervisor | Idempotent no-op; keep current owner/epoch |
+| `HANDOFF_MISSING` | Supervisor | Lead | Supervisor -> Lead | Supervisor | Block transfer until valid handoff is received |
+| `SPLIT_BRAIN_DETECTED` | Supervisor | Lead | Supervisor -> Lead | Supervisor | Enter reconcile lock and request Lead arbitration |
+| `ESCALATE TO MEDIUM` | Unified reviewer or coder | Supervisor (routing), then Lead (staffing decision) | Source -> Supervisor -> Lead | Supervisor | Lead decides staffing; Supervisor applies roster/state updates |
+
+Lead producer sequence (mandatory):
+1. Spawn Supervisor.
+2. Emit `STATE_OWNERSHIP_HANDOFF(epoch)` exactly once for the transfer.
+3. Wait for `STATE_OWNERSHIP_ACK(epoch)` before allowing monitor-mode operational writes.
+4. If `HANDOFF_DUPLICATE`, `HANDOFF_MISSING`, or `SPLIT_BRAIN_DETECTED` occurs, stop transfer and resolve first.
+
+Ownership rules:
+- Supervisor is the **single writer** of operational state transitions/events in `.claude/teams/{team-name}/state.md` only after `STATE_OWNERSHIP_ACK(epoch)`.
+- Tech Lead owns architectural decisions in `DECISIONS.md`.
+- Supervisor may append only operational escalation/orchestration notes in dedicated operational sections of `DECISIONS.md`.
+- Lead does not write operational transitions after ownership ACK; Lead issues decisions and spawn/shutdown commands.
+
+**3. Reviewers** (permanent, roster-driven):
 
 For MEDIUM/COMPLEX — spawn all 3 in parallel:
 ```
@@ -504,17 +554,17 @@ Wait for REVIEW requests from coders via SendMessage.
 Gold standard references for this feature: [list reference files from researcher findings].")
 ```
 
-For SIMPLE — spawn unified reviewer instead:
+For SIMPLE — spawn unified reviewer:
 ```
 Task(subagent_type="agent-teams:unified-reviewer", team_name="feature-<short-name>", name="unified-reviewer",
   prompt="You are the unified reviewer for team feature-<short-name>.
 Wait for REVIEW requests from coders via SendMessage.
-If code touches auth/payments/migrations, send ESCALATE TO MEDIUM to Lead.")
+If code touches auth/payments/migrations, send ESCALATE TO MEDIUM to supervisor.")
 ```
 
-**2. Coders** (up to --coders in parallel, uses `agents/coder.md`):
+**4. Coders** (up to --coders in parallel, uses `agents/coder.md`):
 
-Tell each coder their team roster so they can communicate directly:
+Tell each coder their live roster and escalation recipient:
 ```
 Task(
   subagent_type="agent-teams:coder",
@@ -523,9 +573,10 @@ Task(
   prompt="You are Coder #{N}. Team: feature-<short-name>.
 
 YOUR TEAM ROSTER (communicate directly via SendMessage):
-- Reviewers: security-reviewer, logic-reviewer, quality-reviewer
-- Tech Lead: tech-lead
-- Lead: for DONE/STUCK signals only
+- Supervisor: supervisor (operational signals: IN_REVIEW/DONE/STUCK/REVIEW_LOOP/IMPOSSIBLE_WAIT)
+- Reviewers: {active reviewers from roster}
+- Tech Lead: {tech-lead if ACTIVE}
+- Lead: decisions/staffing only
 
 YOUR TASK CONTEXT:
 {Brief summary of what this coder will work on — from task descriptions}
@@ -538,29 +589,36 @@ Claim your first task from the task list and start working."
 )
 ```
 
-For SIMPLE tasks, tell coders: `Reviewers: unified-reviewer` (no separate reviewers, no tech-lead in roster).
-
-**3. Write initial state file** (for compaction resilience):
+**5. Write initial state file** (for compaction resilience + ownership clarity):
 ```
 Write(".claude/teams/{team-name}/state.md"):
 
 # Team State — feature-{name}
 
 ## Recovery Instructions
-If you lost context after compaction, read this file. Your role in Phase 2:
-- Listen for DONE/STUCK/ESCALATE from team members
-- DO NOT read code, run checks, or notify reviewers — coders do that directly
-- Update this file after each event
+If context is compacted, read this file first.
 
 ## Phase: EXECUTION
 ## Complexity: {SIMPLE | MEDIUM | COMPLEX}
 
+## Ownership
+- operational_state_owner: supervisor@{epoch}
+- architectural_decisions_owner: tech-lead
+- lead_role: decisions/staffing only
+
 ## Team Roster
-- tech-lead: ACTIVE
+- supervisor: ACTIVE
+- tech-lead: {ACTIVE | NOT_SPAWNED}
 - security-reviewer: {ACTIVE | NOT_SPAWNED}
 - logic-reviewer: {ACTIVE | NOT_SPAWNED}
 - quality-reviewer: {ACTIVE | NOT_SPAWNED}
 - unified-reviewer: {ACTIVE | NOT_SPAWNED}
+
+## Approval Matrix (runtime source of truth)
+- SIMPLE: unified-reviewer
+- SIMPLE_ESCALATED_TO_MEDIUM: security-reviewer + logic-reviewer + quality-reviewer + tech-lead
+- MEDIUM: active reviewer set for task + tech-lead
+- COMPLEX: security-reviewer + logic-reviewer + quality-reviewer + tech-lead
 
 ## Tasks
 - #{id}: {subject} — {STATUS} ({assignment})
@@ -568,73 +626,43 @@ If you lost context after compaction, read this file. Your role in Phase 2:
 ## Active Coders: {N} (max: {M})
 ```
 
-Coders drive their own review process via SendMessage to reviewers and tech-lead. Lead is NOT in the review loop.
+Coders drive review requests directly. Supervisor owns operational monitoring and state transitions.
 
-### Phase 2: Monitor Mode
+### Phase 2: Monitor Mode (Lead decides, Supervisor orchestrates)
 
-**Your role is MINIMAL.** Coders communicate directly with reviewers and tech-lead via SendMessage. You only handle progress tracking and exceptional events.
+#### Deterministic escalation contract (`ESCALATE TO MEDIUM`):
+1. Sender (unified reviewer or coder) sends `ESCALATE TO MEDIUM` to **supervisor**.
+2. Supervisor routes escalation packet to **Lead** (recipient for decision).
+3. Lead decides staffing/spawn actions.
+4. Lead executes required reviewer/tech-lead spawns if missing.
+5. Supervisor updates roster + operational state in `state.md` and notifies affected coders.
 
-#### What you do:
+#### Runtime wait rules (roster-scoped, fail-fast):
+1. Compute required approvers from complexity mode + active roster approval matrix.
+2. Materialize per-task wait set as `required_approvers ∩ ACTIVE roster`.
+3. Validate each required role is ACTIVE **before** entering wait.
+4. If any required role is not ACTIVE, emit `IMPOSSIBLE_WAIT`, mark operational `STUCK_ESCALATED`, and escalate to Lead immediately.
+5. Never wait for a role that was not spawned.
 
-| Event from team member | Your action |
-|------------------------|-------------|
-| Coder: `IN_REVIEW: task #N` | Update state.md (mark IN_REVIEW). No other action needed. |
-| Coder: `DONE: task #N` | Update state.md (mark completed). If unassigned tasks remain AND active coders < max, spawn new coder with team roster. |
-| Coder: `DONE: task #N, claiming task #M` | Update state.md (mark #N completed, #M in progress by same coder). No spawn needed — coder already claimed next task. |
-| Coder: `DONE: task #N. ALL MY TASKS COMPLETE` | Update state.md. Check if ALL tasks done → Phase 3. If unassigned remain, spawn new coder. |
-| Coder: `QUESTION: task #N. [question]` | Answer from your Phase 1 context if you can. If not — dispatch a researcher (Explore or general-purpose with WebSearch), then SendMessage the answer to coder. |
-| Coder: `STUCK: task #N` | Dispatch a researcher to investigate. Adjust task description or reassign to different coder. |
-| Coder: `REVIEW_LOOP: task #N` | Dispatch a researcher to read code + review feedback. SendMessage to coder with concrete fix. |
-| Unified reviewer: `ESCALATE TO MEDIUM` | Spawn 3 specialized reviewers (security, logic, quality). SendMessage to coder with updated team roster. |
+#### Monitor actions by event:
 
-#### What you do NOT do:
+| Event from team member | Supervisor action | Lead action |
+|------------------------|-------------------|-------------|
+| Coder: `IN_REVIEW: task #N` | Update `state.md` to IN_REVIEW | None |
+| Coder: `DONE: task #N` | Update `state.md` and active roster counters | Spawn/reassign coder only if needed |
+| Coder: `DONE: task #N, claiming task #M` | Update `state.md` ownership transitions | None |
+| Coder: `DONE: task #N. ALL MY TASKS COMPLETE` | Update `state.md`; if all tasks terminal, enter completion gate | Confirm transition to Phase 3 |
+| Coder: `STUCK: task #N` | Mark stuck, capture evidence, route escalation | Decide re-scope/reassign/research |
+| Coder: `REVIEW_LOOP: task #N` | Mark loop, quarantine operationally, escalate summary | Decide owner swap or checkpoint |
+| Unified reviewer/coder: `ESCALATE TO MEDIUM` | Execute deterministic escalation routing | Decide staffing and spawn missing roles |
+| Any role: `IMPOSSIBLE_WAIT` | Fail fast, escalate immediately, block indefinite wait | Resolve missing approver roster |
 
-- Do NOT read code files or review code
-- Do NOT run smoke tests or convention checks (coders do self-checks in Step 4)
-- Do NOT notify reviewers about completed tasks (coders message them directly)
-- Do NOT notify tech-lead about reviews (coders message tech-lead directly)
-- Do NOT forward messages between team members (they communicate directly)
-- Do NOT spawn enabling agents
+#### Spawning new coders (roster-aware):
 
-#### State file updates:
-
-After every event, update `.claude/teams/{team-name}/state.md`:
-- Task status: UNASSIGNED → IN_PROGRESS(coder-N) → IN_REVIEW(coder-N) → COMPLETED
-- Coder spawns/shutdowns
-- Reviewer escalations
-
-#### Compaction recovery:
-
-If your context feels incomplete or you cannot remember the current state:
-1. Read `.claude/teams/{team-name}/state.md`
-2. Follow the Recovery Instructions in the file
-3. Continue monitoring from the current phase
-
-**This is your safety net.** The state file contains everything you need to recover after context compaction.
-
-#### Spawning new coders:
-
-When a coder reports "DONE" and unassigned tasks remain:
-1. Update state.md (mark task completed)
-2. If active coders < max AND unassigned tasks exist:
-   ```
-   Task(
-     subagent_type="agent-teams:coder",
-     team_name="feature-<short-name>",
-     name="coder-<N>",
-     prompt="You are Coder #{N}. Team: feature-<short-name>.
-
-   YOUR TEAM ROSTER:
-   {current roster from state.md}
-
-   --- GOLD STANDARD EXAMPLES ---
-   {GOLD STANDARD BLOCK}
-   --- END GOLD STANDARDS ---
-
-   Claim your next task from the task list and start working."
-   )
-   ```
-3. Update state.md with new coder
+When unassigned tasks remain and capacity is available:
+1. Supervisor updates `state.md` with completion and capacity.
+2. Lead spawns new coder.
+3. Supervisor updates `state.md` roster/task assignment and confirms to coder.
 
 ### Phase 3: Completion & Verification
 
@@ -685,13 +713,27 @@ When all tasks are completed:
    - Go back to step 2 and run the conventions task. If it was never created → create it now and assign to a coder.
    - Feature cannot be declared COMPLETE without .conventions/ being created or updated.
 
-5. Shut down all permanent teammates:
-   - Shut down Tech Lead (SendMessage type=shutdown_request)
-   - Shut down security-reviewer (SendMessage type=shutdown_request)
-   - Shut down logic-reviewer (SendMessage type=shutdown_request)
-   - Shut down quality-reviewer (SendMessage type=shutdown_request)
+5. Deterministic teardown FSM (roster-driven, bounded retries, safe-fail):
 
-5. Print summary report:
+   ```
+   TEARDOWN_INIT -> SHUTDOWN_REQUESTED -> WAITING_ACKS -> RETRYING -> READY_TO_DELETE -> TEAM_DELETED | TEARDOWN_FAILED_SAFE
+   ```
+
+   Teardown rules:
+   - Build shutdown target list from ACTIVE roster in `state.md` (never hardcoded by complexity).
+   - Send `shutdown_request` to all ACTIVE teammates except supervisor first.
+   - Enter `WAITING_ACKS` and collect acknowledgements.
+   - Retry constants are fixed: `ACK_RETRY_ROUNDS=3`, `ACK_RETRY_TIMEOUT_SEC=60` between rounds.
+   - Supervisor tracks ACK progress and writes teardown transitions/events into `state.md`.
+   - Normal-path preconditions for `READY_TO_DELETE`: no active non-terminal tasks, state consistency, persisted summaries/decisions, and full roster ACK.
+   - Forced-finalize preconditions (full ACK not required): no active non-terminal tasks, state consistency, persisted summaries/decisions.
+   - If ACK is still missing after fixed retries, Supervisor emits `FORCED_FINALIZE_CANDIDATE` (with missing roster list) to Lead.
+   - Lead must explicitly respond with `FORCED_FINALIZE_ACK` to allow bounded forced finalize.
+   - On `FORCED_FINALIZE_ACK`, Supervisor executes forced-finalize protocol (freeze writes, persist teardown report, mark unresolved ACKs, set `ACK_STATUS=FORCED_FINALIZE_APPROVED`) and then transitions to `READY_TO_DELETE`.
+   - If `FORCED_FINALIZE_ACK` is not granted, transition to `TEARDOWN_FAILED_SAFE` and block TeamDelete.
+   - Mandatory ordering: supervisor shutdown happens last, immediately before TeamDelete.
+
+6. Print summary report:
    ```
    ══════════════════════════════════════════════════
    FEATURE IMPLEMENTATION COMPLETE
@@ -730,7 +772,8 @@ When all tasks are completed:
    ══════════════════════════════════════════════════
    ```
 
-7. TeamDelete to clean up
+7. If teardown FSM reached `READY_TO_DELETE`, request supervisor shutdown (last), then TeamDelete.
+8. If teardown FSM reached `TEARDOWN_FAILED_SAFE`, stop and escalate to user with blocker summary (no TeamDelete).
 
 ## Stuck Protocol
 
@@ -743,7 +786,7 @@ When things go wrong, handle it yourself — don't involve the user:
 | Tech Lead rejects architecture > 2 times | Review the disagreement yourself. If you need more context, dispatch a web researcher. Make the final call, document in DECISIONS.md. |
 | Coder escalates "pattern doesn't fit" | Forward to Tech Lead for decision. If Tech Lead unsure, dispatch a web researcher for best practices. Document decision in DECISIONS.md. |
 | Build/tests fail after all tasks | Create targeted fix tasks. Only fix what's broken, don't redo completed work. |
-| A coder goes idle unexpectedly | Send a message asking for status. If no response, shut down and spawn a replacement. |
+| A coder goes idle unexpectedly | Let Supervisor run staged ping/nudge/escalation. If unresolved, Lead approves replacement and Supervisor records roster/state transition. |
 | Need best practices mid-session | Dispatch a web researcher (general-purpose with WebSearch). Don't Google yourself — protect your context. |
 | Risk analysis reveals a CRITICAL confirmed risk that requires architectural change | Adjust the task list based on Tech Lead's recommendations. If the risk requires a fundamentally different approach — re-plan affected tasks and re-validate with Tech Lead. |
 | Risk tester and Tech Lead disagree on risk severity | Tech Lead's judgment takes priority — they have broader architectural context. Document the disagreement in DECISIONS.md. |
@@ -762,15 +805,15 @@ When things go wrong, handle it yourself — don't involve the user:
 - **Definition of Done** — define it from researcher findings + CLAUDE.md + conventions, include in DECISIONS.md
 - **Validate before executing** — Tech Lead reviews the plan before coders start (skip for SIMPLE tasks)
 - **Risk analysis before coding** — Tech Lead identifies risks, risk testers verify them, mitigations added to tasks BEFORE code is written (skip for SIMPLE tasks). Prevention > detection.
-- **Coders drive review** — coders send review requests directly to reviewers and tech-lead via SendMessage. Lead is NOT in the review loop.
-- **Reviewers are permanent** — spawned eagerly at setup (Step 5), review ALL tasks throughout the session
-- **Tech Lead is permanent** — spawned once, validates plan, reviews all tasks, handles escalations, maintains DECISIONS.md
+- **Coders drive review** — coders send review requests directly to reviewers and tech-lead via SendMessage. Lead is NOT in the review loop; Supervisor is in the operational loop only.
+- **Supervisor is permanent and mandatory** — spawned first at setup (Step 5) and kept alive through teardown readiness.
+- **Reviewers are permanent by mode** — unified (SIMPLE) or 3 specialists (MEDIUM/COMPLEX), and escalated SIMPLE must transition to specialist roster before waiting for specialist approvals.
 - **Coders are temporary** — spawned per task, killed after completion
 - **Researchers are one-shot** — spawned for specific questions, return findings, done. Can be dispatched anytime.
 - **Enabling agents are one-shot** — spawned per trigger when files touch sensitive areas, not team members
 - **Verify at the end** — build + tests must pass before declaring completion
 - **Propose convention updates** — after every feature, check for recurring issues and new patterns. Propose `.conventions/` updates to the user.
-- **Coders collect approvals** — coders wait for all reviewers + tech-lead before committing, then report DONE to Lead
-- **State file for resilience** — update `.claude/teams/{team-name}/state.md` after every event. Read it to recover after compaction.
-- **Monitor mode in Phase 2** — Lead tracks DONE/STUCK/QUESTION signals. Does NOT read code, run checks, or relay messages.
+- **Coders collect roster-scoped approvals** — coders wait only for required ACTIVE approvers from the runtime approval matrix; impossible waits fail-fast via `IMPOSSIBLE_WAIT` escalation to Supervisor/Lead.
+- **State file for resilience** — Supervisor updates `.claude/teams/{team-name}/state.md` operational transitions/events after every event; Lead/Tech Lead do not write operational transitions.
+- **Monitor mode in Phase 2** — Supervisor tracks operational events (liveness/loop/dedup/escalation), Lead handles decisions and staffing.
 - **Lead as knowledge hub** — Lead has the richest context from Phase 1 research. Coders ask QUESTION when info is missing — Lead answers or dispatches researcher.
