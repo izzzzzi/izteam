@@ -5,8 +5,8 @@ Expert debate arena — real experts argue organically and converge on optimal s
 ## Installation
 
 ```bash
-/plugin marketplace add izmailovilya/ilia-izmailov-plugins
-/plugin install expert-arena@ilia-izmailov-plugins
+/plugin marketplace add izzzzzi/izteam
+/plugin install expert-arena@izteam
 ```
 
 ## Usage

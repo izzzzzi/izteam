@@ -3,8 +3,11 @@
   "version": "0.3.0",
   "description": "Slash commands that launch Agent Teams with always-on Supervisor for feature implementation with code review gates and deterministic teardown",
   "author": {
-    "name": "Ilya"
+    "name": "izzzzzi",
+    "url": "https://github.com/izzzzzi"
   },
+  "repository": "https://github.com/izzzzzi/izteam",
+  "license": "MIT",
   "keywords": [
     "agent-teams",
     "orchestration",

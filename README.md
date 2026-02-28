@@ -1,4 +1,4 @@
-# Ilya Izmailov's Claude Code Plugins
+# izteam — Claude Code Plugins
 
 A collection of plugins for [Claude Code](https://claude.ai/code).
 
@@ -7,13 +7,13 @@ A collection of plugins for [Claude Code](https://claude.ai/code).
 Add this marketplace to Claude Code:
 
 ```bash
-/plugin marketplace add izmailovilya/ilia-izmailov-plugins
+/plugin marketplace add izzzzzi/izteam
 ```
 
 Then install any plugin:
 
 ```bash
-/plugin install <plugin-name>@ilia-izmailov-plugins
+/plugin install <plugin-name>@izteam
 ```
 
 **Important:** Restart Claude Code after installing plugins to load them.
@@ -25,7 +25,7 @@ Then install any plugin:
 Deep structured thinking with parallel expert analysis before implementation.
 
 ```bash
-/plugin install think-through@ilia-izmailov-plugins
+/plugin install think-through@izteam
 ```
 
 **Usage:**
@@ -33,7 +33,7 @@ Deep structured thinking with parallel expert analysis before implementation.
 /deep-thinking <task or idea>
 ```
 
-Breaks down your task into aspects, launches expert agents in parallel (🐙), and produces a comprehensive design document with decisions, trade-offs, and implementation plan.
+Breaks down your task into aspects, launches expert agents in parallel, and produces a comprehensive design document with decisions, trade-offs, and implementation plan.
 
 [Read more →](./plugins/think-through/README.md)
 
@@ -44,7 +44,7 @@ Breaks down your task into aspects, launches expert agents in parallel (🐙), a
 Interactive feature audit for vibe-coded projects. Finds dead code, unused features, and experiments through conversation.
 
 ```bash
-/plugin install vibe-audit@ilia-izmailov-plugins
+/plugin install vibe-audit@izteam
 ```
 
 **Usage:**
@@ -55,8 +55,6 @@ Interactive feature audit for vibe-coded projects. Finds dead code, unused featu
 /vibe-audit ui           # src/design-system/ components
 /vibe-audit stores       # src/stores/ Zustand state
 ```
-
-Scans your codebase for suspicious areas (orphan routes, dead UI, stale code), asks if you need them, and safely removes what you don't — with git backup.
 
 [Read more →](./plugins/vibe-audit/README.md)
 
@@ -69,7 +67,7 @@ Launch a team of AI agents to implement features with built-in code review gates
 > **Requires:** Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment. [See setup →](./plugins/agent-teams/README.md#prerequisites)
 
 ```bash
-/plugin install agent-teams@ilia-izmailov-plugins
+/plugin install agent-teams@izteam
 ```
 
 **Usage:**
@@ -79,7 +77,7 @@ Launch a team of AI agents to implement features with built-in code review gates
 /conventions
 ```
 
-Spawns a full team — researchers explore your codebase, coders implement with gold standard examples, 3 specialized reviewers (security, logic, quality) check every change, and a Tech Lead validates architecture. Supports SIMPLE/MEDIUM/COMPLEX complexity with automatic team scaling.
+Spawns a full team — researchers explore your codebase, coders implement with gold standard examples, 3 specialized reviewers (security, logic, quality) check every change, and a Tech Lead validates architecture.
 
 [Read more →](./plugins/agent-teams/README.md)
 
@@ -89,10 +87,10 @@ Spawns a full team — researchers explore your codebase, coders implement with 
 
 Expert debate arena — real experts argue organically and converge on optimal solutions for any domain.
 
-> **Requires:** Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment. [See setup →](./plugins/agent-teams/README.md#prerequisites)
+> **Requires:** Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment.
 
 ```bash
-/plugin install expert-arena@ilia-izmailov-plugins
+/plugin install expert-arena@izteam
 ```
 
 **Usage:**
@@ -101,12 +99,24 @@ Expert debate arena — real experts argue organically and converge on optimal s
 /expert-arena "Best pricing strategy for a developer tool?"
 ```
 
-Selects 3-5 real experts with opposing viewpoints, gathers context via researchers, launches organic peer-to-peer debates with live commentary, and synthesizes results into a structured document with verdict and recommendations.
-
 [Read more →](./plugins/expert-arena/README.md)
 
 ---
 
+## Troubleshooting Updates
+
+If you don't see the latest version after update:
+
+```bash
+rm -rf ~/.claude/plugins/cache/izteam/
+```
+
+Then reinstall the plugin. Also enable auto-update for the marketplace:
+
+```
+/plugin > Marketplaces > izteam > Enable auto-update
+```
+
 ## License
 
-MIT
+MIT — originally based on [ilia-izmailov-plugins](https://github.com/izmailovilya/ilia-izmailov-plugins) by Ilya Izmailov.
