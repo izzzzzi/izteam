@@ -1,113 +1,224 @@
-# izteam — AI Agent Team for Claude Code
+<div align="center">
 
-A team of AI agents you can assemble in [Claude Code](https://claude.ai/code).
+# 🧩 izteam
 
-## Installation
+**Коллекция плагинов для Claude Code — команды AI-агентов, экспертные дебаты, глубокий анализ и аудит кода**
 
-Add this marketplace to Claude Code:
+[![Validate](https://github.com/izzzzzi/izteam/actions/workflows/validate.yml/badge.svg)](https://github.com/izzzzzi/izteam/actions/workflows/validate.yml)
+[![Release](https://github.com/izzzzzi/izteam/actions/workflows/release.yml/badge.svg)](https://github.com/izzzzzi/izteam/actions/workflows/release.yml)
+[![Auto Version](https://github.com/izzzzzi/izteam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izteam/actions/workflows/auto-version.yml)
+[![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izteam)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](LICENSE)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-purple?style=flat&colorA=18181B&colorB=7C3AED)](https://claude.ai/code)
+
+<br />
+
+*Marketplace плагинов, превращающих Claude Code в мультиагентную систему — с командами разработчиков, специализированными ревьюерами и экспертными советами.*
+
+</div>
+
+---
+
+## 📖 Обзор
+
+**izteam** — независимый marketplace плагинов для [Claude Code](https://claude.ai/code).
+Каждый плагин добавляет slash-команды, агентов и готовые пайплайны: от оркестрации целой команды AI-разработчиков до глубокого аудита кодовой базы.
+
+---
+
+## ✨ Плагины
+
+| Плагин | Версия | Описание | Команда |
+|--------|--------|----------|---------|
+| 🤖 **[team](#-team)** | `0.3.0` | Команда AI-агентов с code review gates | `/build` |
+| 🧠 **[think](#-think)** | `1.1.0` | Глубокий анализ перед реализацией | `/think` |
+| 🎭 **[arena](#-arena)** | `1.1.0` | Экспертные дебаты для сложных решений | `/arena` |
+| 🧹 **[audit](#-audit)** | `0.1.0` | Интерактивный аудит мёртвого кода | `/audit` |
+
+---
+
+## 🚀 Быстрый старт
+
+### 1. Добавь marketplace
 
 ```bash
-/plugin marketplace add izmailovilya/ilia-izmailov-plugins
+/plugin marketplace add izzzzzi/izteam
 ```
 
-Then install any plugin:
+### 2. Установи плагины
 
 ```bash
-/plugin install <plugin-name>@ilia-izmailov-plugins
+/plugin install team@izteam
+/plugin install think@izteam
+/plugin install arena@izteam
+/plugin install audit@izteam
 ```
 
-**Important:** Restart Claude Code after installing plugins to load them.
+### 3. Перезапусти Claude Code
 
-## Available Plugins
+Плагины загружаются при старте — перезапусти после установки.
 
-### team
+---
 
-Launch a team of AI agents to implement features with built-in code review gates.
+## 🤖 team
 
-> **Requires:** Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment. [See setup →](./plugins/team/README.md#prerequisites)
+Запускает команду AI-агентов для реализации фич с встроенными code review gates.
+
+> **Требуется:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` в settings.json
 
 ```bash
-/plugin install team@ilia-izmailov-plugins
+/plugin install team@izteam
 ```
 
-**Usage:**
-```
-/build "Add user settings page"
+**Примеры:**
+
+```bash
+/build "Добавить страницу настроек пользователя"
 /build docs/plan.md --coders=2
-/brief "Add notifications" — interview first, then build
+/brief "Система уведомлений"
 /conventions
 ```
 
-Spawns a full team — researchers explore your codebase, coders implement with gold standard examples, 3 specialized reviewers (security, logic, quality) check every change, and a Tech Lead validates architecture. Supports SIMPLE/MEDIUM/COMPLEX complexity with automatic team scaling.
-
-[Read more →](./plugins/team/README.md)
+[Подробнее →](./plugins/team/README.md)
 
 ---
 
-### think
+## 🧠 think
 
-Deep structured thinking with parallel expert analysis before implementation.
+Глубокий структурированный анализ перед реализацией — разбиение на аспекты, параллельные эксперты, итоговый документ.
 
 ```bash
-/plugin install think@ilia-izmailov-plugins
+/plugin install think@izteam
 ```
 
-**Usage:**
-```
-/think <task or idea>
-```
-
-Breaks down your task into aspects, launches expert agents in parallel, and produces a comprehensive design document with decisions, trade-offs, and implementation plan.
-
-[Read more →](./plugins/think/README.md)
-
----
-
-### arena
-
-Expert debate arena — real experts argue organically and converge on optimal solutions for any domain.
-
-> **Requires:** Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` in settings.json or environment. [See setup →](./plugins/team/README.md#prerequisites)
+**Примеры:**
 
 ```bash
-/plugin install arena@ilia-izmailov-plugins
+/think Implement a feedback collection system with cashback rewards
+/think Migrate from REST to GraphQL — trade-offs and strategy
+/think Refactor authentication from session-based to JWT
 ```
 
-**Usage:**
-```
-/arena "Should we use microservices or monolith?"
-/arena "Best pricing strategy for a developer tool?"
-```
-
-Selects 3-5 real experts with opposing viewpoints, gathers context via researchers, launches organic peer-to-peer debates with live commentary, and synthesizes results into a structured document with verdict and recommendations.
-
-[Read more →](./plugins/arena/README.md)
+[Подробнее →](./plugins/think/README.md)
 
 ---
 
-### audit
+## 🎭 arena
 
-Interactive feature audit for vibe-coded projects. Finds dead code, unused features, and experiments through conversation.
+Арена экспертных дебатов — реальные эксперты спорят напрямую и приходят к конвергенции.
+
+> **Требуется:** `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` в settings.json
 
 ```bash
-/plugin install audit@ilia-izmailov-plugins
+/plugin install arena@izteam
 ```
 
-**Usage:**
-```
-/audit              # Full codebase scan
-/audit features     # src/features/ deep audit
-/audit server       # src/server/ routers & services
-/audit ui           # src/design-system/ components
-/audit stores       # src/stores/ Zustand state
+**Примеры:**
+
+```bash
+/arena Should we use microservices or monolith for our SaaS?
+/arena Best pricing strategy for a developer tool?
+/arena How should we handle state management in our React app?
 ```
 
-Scans your codebase for suspicious areas (orphan routes, dead UI, stale code), asks if you need them, and safely removes what you don't — with git backup.
-
-[Read more →](./plugins/audit/README.md)
+[Подробнее →](./plugins/arena/README.md)
 
 ---
 
-## License
+## 🧹 audit
 
-MIT
+Интерактивный аудит для vibe-coded проектов — находит мёртвый код через диалог с разработчиком.
+
+```bash
+/plugin install audit@izteam
+```
+
+**Примеры:**
+
+```bash
+/audit
+/audit features
+/audit server
+/audit ui
+/audit stores
+```
+
+[Подробнее →](./plugins/audit/README.md)
+
+---
+
+## 📁 Структура проекта
+
+```text
+izteam/
+├── .claude-plugin/
+│   └── marketplace.json
+├── plugins/
+│   ├── team/
+│   ├── think/
+│   ├── arena/
+│   └── audit/
+├── scripts/
+│   └── bump-version.sh
+├── .github/workflows/
+│   ├── validate.yml
+│   ├── release.yml
+│   └── auto-version.yml
+└── LICENSE
+```
+
+---
+
+## 🔧 Настройка
+
+### Включение Agent Teams
+
+Плагины `team` и `arena` требуют экспериментальную функцию Agent Teams:
+
+```json
+// ~/.claude/settings.json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+---
+
+## 🛠 Разработка
+
+### Версионирование
+
+```bash
+# Бамп patch-версии
+./scripts/bump-version.sh team patch
+
+# Бамп minor-версии
+./scripts/bump-version.sh think minor
+```
+
+Скрипт синхронно обновляет `plugin.json` и `.claude-plugin/marketplace.json`.
+
+### CI/CD
+
+- `validate.yml` — проверки структуры и консистентности
+- `release.yml` — релизный pipeline
+- `auto-version.yml` — автоматический бамп версий по Conventional Commits
+
+---
+
+## 🐛 Troubleshooting
+
+- Плагин не появился после установки → перезапусти Claude Code.
+- Не подтянулась новая версия → очисти кеш:
+
+```bash
+rm -rf ~/.claude/plugins/cache/izteam/
+```
+
+---
+
+## 📝 Лицензия
+
+[MIT](LICENSE)
