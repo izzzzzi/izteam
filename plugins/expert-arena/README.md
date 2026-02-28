@@ -1,104 +1,160 @@
-# Expert Arena
+<div align="center">
 
-Expert debate arena — real experts argue organically and converge on optimal solutions for any domain.
+# 🎭 expert-arena
 
-## Installation
+**Арена экспертных дебатов — реальные эксперты спорят напрямую и приходят к конвергенции**
+
+[![izteam](https://img.shields.io/badge/Marketplace-izteam-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izteam)
+[![Version](https://img.shields.io/badge/Version-1.1.0-blue?style=flat&colorA=18181B&colorB=7C3AED)](https://github.com/izzzzzi/izteam)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](../../LICENSE)
+
+<br />
+
+*Подбирает реальных экспертов с противоположными позициями, запускает органические дебаты peer-to-peer с Devil's Advocate и live-комментированием.*
+
+</div>
+
+---
+
+## 📋 Требования
+
+> Использует Agent Teams — экспериментальная фича Claude Code.
+
+```json
+// ~/.claude/settings.json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+---
+
+## 🚀 Установка
 
 ```bash
 /plugin marketplace add izzzzzi/izteam
 /plugin install expert-arena@izteam
 ```
 
-## Usage
+---
 
-```
-/expert-arena <question>
+## ✨ Использование
+
+```bash
+/expert-arena <вопрос>
 ```
 
-**Examples:**
-```
+**Примеры:**
+
+```bash
+# Архитектура
 /expert-arena Should we use microservices or monolith for our SaaS?
-/expert-arena What's the best pricing strategy for a developer tool?
+
+# Продукт
+/expert-arena Best pricing strategy for a developer tool?
+
+# Технические решения
 /expert-arena How should we handle state management in our React app?
+
+# Стратегия
+/expert-arena Build vs buy for our internal tooling?
+
+# Любой домен
+/expert-arena Is remote work better for engineering productivity?
 ```
 
-Works for **any domain**: engineering, product, strategy, business, science, philosophy.
+Работает для **любого домена**: инженерия, продукт, стратегия, бизнес, наука, философия.
 
-## How It Works
+---
 
-### Phase 0: Expert Selection
-- Analyzes your question (domain, type, stakes)
-- Selects 3-5 **real experts** with published positions (books, articles, talks)
-- Ensures diverse, **opposing** viewpoints — not an echo chamber
-- Includes a **Devil's Advocate** with veto power
-- Presents the panel for your review
+## 📖 Как это работает
 
-### Phase 1: Reconnaissance
-- Launches 2-4 researcher agents **in parallel**
-- Code questions: project architecture, best practices, constraints
-- Non-technical questions: data, expert opinions, case studies
-- Researchers report findings and exit — they don't participate in debates
+| Фаза | Что происходит |
+|------|---------------|
+| **0. Expert Selection** | Анализ вопроса, подбор 3-5 реальных экспертов с **противоположными** позициями |
+| **1. Reconnaissance** | 2-4 исследователя параллельно собирают данные (код, статьи, кейсы) |
+| **2. Arena Launch** | Все эксперты стартуют одновременно с полным контекстом |
+| **3. Organic Debates** | Прямые дебаты — эксперты вызывают друг друга, контраргументы, смена позиций |
+| **4. Convergence** | Финальные позиции (3+ экспертов согласны, или timeout 20 мин) |
+| **5. Synthesis** | Итоговый документ с вердиктом, хроникой и планом действий |
 
-### Phase 2: Arena Launch
-- Compiles research into a briefing packet
-- Creates an Agent Team
-- Launches **all experts simultaneously** with full context
+### Ключевые механики
 
-### Phase 3: Organic Debates
-Experts debate **directly with each other** (not through a moderator):
+<details>
+<summary><b>Direct Communication</b></summary>
 
-1. Each expert broadcasts their position + honest self-critique
-2. Experts find weaknesses and **challenge each other directly**
-3. Responses, counter-arguments, position changes happen organically
-4. Devil's Advocate can raise a **VETO** if fundamental flaw found
-5. **Live commentary** — moderator narrates key moments like a sports commentator
+Эксперты спорят **напрямую друг с другом**, а не через модератора. Это создаёт органические дебаты вместо "телефона".
 
-### Phase 4: Convergence
-Debates end when 3+ experts send final positions, all go quiet, or 20 min timeout.
+```
+Kent Beck: "TDD is the foundation of sustainable development..."
+Martin Fowler: "I disagree with Kent — TDD works for some teams,
+               but mandating it creates false confidence..."
+Kent Beck: "Martin raises a valid point about mandating.
+            I'll refine my position..."
+```
 
-### Phase 5: Synthesis
-Creates a final document with:
-- Verdict and recommendation
-- Debate chronicle (who challenged whom, who changed position)
-- Arguments for and against
-- Remaining disagreements
-- Action plan
+</details>
 
-Saves to `docs/arena/YYYY-MM-DD-[topic].md`
+<details>
+<summary><b>Devil's Advocate</b></summary>
 
-## Structure
+Один из экспертов — Devil's Advocate с правом **VETO**. Если находит фундаментальный изъян в консенсусе, поднимает вето и дебаты продолжаются.
+
+</details>
+
+<details>
+<summary><b>Live Commentary</b></summary>
+
+Модератор комментирует ключевые моменты как спортивный комментатор — смены позиций, сильные аргументы, вето.
+
+</details>
+
+---
+
+## 🎯 Принципы дизайна
+
+| Принцип | Зачем |
+|---------|-------|
+| **Реальные люди** | Эксперты с реальными опубликованными позициями |
+| **Намеренный конфликт** | Специально подбираются несогласные друг с другом |
+| **Peer-to-peer** | Прямые дебаты без телефона через модератора |
+| **Смена позиции = сила** | Изменить мнение под давлением аргументов — ценно |
+| **Devil's Advocate + вето** | Защита от группового мышления |
+| **Live-комментарий** | Пользователь видит эволюцию мышления в реальном времени |
+
+---
+
+## 🎯 Когда использовать
+
+| Ситуация | Пример |
+|----------|--------|
+| Большие архитектурные решения | Микросервисы vs монолит |
+| Trade-offs без очевидного ответа | SQL vs NoSQL для нашего use case |
+| Нужны разные точки зрения | Как масштабировать команду |
+| Стресс-тест идеи | Стоит ли нам pivot-ить продукт |
+| Любой спорный вопрос | Где умные люди реально не согласились бы |
+
+---
+
+## 📁 Структура
 
 ```
 expert-arena/
 ├── .claude-plugin/
 │   └── plugin.json
-├── commands/
-│   └── expert-arena.md    # /expert-arena command (moderator)
+├── skills/
+│   └── expert-arena/
+│       └── SKILL.md          # /expert-arena команда (модератор)
 ├── agents/
-│   ├── expert.md           # Expert debater agent
-│   └── researcher.md       # One-shot research agent
+│   ├── expert.md             # Агент-эксперт (дебатёр)
+│   └── researcher.md         # Агент-исследователь (one-shot)
 └── README.md
 ```
 
-## Key Design Principles
+---
 
-| Principle | Why |
-|-----------|-----|
-| **Real people** | Experts have actual published positions — not invented |
-| **Intentional conflict** | Deliberately selects people who would disagree |
-| **Direct communication** | Experts argue peer-to-peer, no telephone game |
-| **Position change = strength** | Changing your mind when convinced is valued |
-| **Devil's Advocate with veto** | Safety net against groupthink |
-| **Live commentary** | Users see thinking evolve in real-time |
+## 📝 Лицензия
 
-## When to Use
-
-- Big architectural or strategic decisions
-- Trade-offs with no obvious right answer
-- Need diverse expert perspectives on a topic
-- Want to stress-test an idea before committing
-- Any question where smart people would genuinely disagree
-
-## License
-
-MIT
+[MIT](../../LICENSE)
