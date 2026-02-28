@@ -1,7 +1,7 @@
 {
   "name": "think",
   "version": "1.1.1",
-  "description": "Deep structured thinking with parallel expert analysis before implementation",
+  "description": "Plan complex tasks before coding with structured expert analysis.",
   "author": {
     "name": "izzzzzi",
     "url": "https://github.com/izzzzzi"

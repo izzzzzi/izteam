@@ -45,6 +45,27 @@ jobs:
             exit 1
           fi
 
+      - name: Check description consistency
+        run: |
+          ERRORS=0
+          for plugin_dir in plugins/*/; do
+            name=$(jq -r '.name' "$plugin_dir/.claude-plugin/plugin.json")
+            pd=$(jq -r '.description' "$plugin_dir/.claude-plugin/plugin.json")
+            md=$(jq -r --arg n "$name" '.plugins[] | select(.name == $n) | .description' .claude-plugin/marketplace.json)
+            if [ "$pd" != "$md" ]; then
+              echo "❌ Description mismatch for $name"
+              echo "   plugin.json=$pd"
+              echo "   marketplace.json=$md"
+              ERRORS=1
+            else
+              echo "✅ $name description is consistent"
+            fi
+          done
+          if [ "$ERRORS" -eq 1 ]; then
+            echo "::error::Description mismatch detected between plugin.json and marketplace.json"
+            exit 1
+          fi
+
       - name: Check required fields in plugin.json
         run: |
           for f in plugins/*/.claude-plugin/plugin.json; do
