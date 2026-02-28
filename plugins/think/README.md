@@ -1,6 +1,8 @@
+<p align="right"><strong>English</strong> | <a href="./README.ru.md">Русский</a></p>
+
 # Think
 
-A plugin for deep structured thinking before implementation.
+Plan complex tasks before coding with structured expert analysis.
 
 ## Installation
 
@@ -23,24 +25,24 @@ A plugin for deep structured thinking before implementation.
 ## How It Works
 
 ### Stage 1: Breakdown + Expert Perspective
-- Understanding the task
-- Choosing main expert with reasoning
-- Principles from 3 experts
-- Table of aspects to think through (with assigned experts)
+- Clarifies the task and desired outcome
+- Selects the main expert with reasoning
+- Pulls guiding principles from 3 experts
+- Creates a table of aspects to analyze (with assigned experts)
 
 ### Stage 2: Parallel Expert Analysis
 Launches agents in parallel — one per aspect. Each agent:
-- Studies the project (structure, patterns, existing code)
-- Applies expert thinking (main expert + 3 principles)
-- Proposes 2-4 solution options with pros/cons
-- Gives recommendation on behalf of the expert
+- Studies your project (structure, patterns, existing code)
+- Applies expert thinking (main expert + principles)
+- Proposes 2-4 options with pros and cons
+- Gives a recommendation for that aspect
 
 ### Stage 3: Summary Document
-Collects results into a structured markdown document:
+Combines results into one structured markdown document:
 - Table of contents
 - Overview with key decisions
-- Details for each aspect with experts and tables
-- Implementation plan (phases)
+- Details for each aspect with comparison tables
+- Implementation plan by phases
 - Success metrics
 
 Saves to `docs/plans/YYYY-MM-DD-[topic]-design.md`
@@ -55,24 +57,25 @@ think/
 │   └── think/SKILL.md
 ├── agents/
 │   └── expert.md
-└── README.md
+├── README.md
+└── README.ru.md
 ```
 
 ## Result
 
-A document like `FEEDBACK-SYSTEM.md`:
-- Experts listed in each section
+A planning document that includes:
+- Experts used per section
 - Decision tables
 - Code examples
-- Implementation plan with phases
+- Phased implementation plan
 - Success metrics
 
 ## When to Use
 
-- New feature with many non-obvious decisions
-- Refactoring with approach selection
+- New features with many non-obvious decisions
+- Refactoring where multiple approaches are possible
 - Architectural changes
-- Any task where "need to think it through"
+- Any task that needs careful planning before coding
 
 ## License
 

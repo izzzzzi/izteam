@@ -1,24 +1,24 @@
-<p align="right"><strong>English</strong> | <a href="./README.ru.md">Русский</a></p>
+<p align="right"><a href="./README.md">English</a> | <strong>Русский</strong></p>
 
 # Audit
 
-Find dead and outdated code with an interactive audit.
+Находите мёртвый и устаревший код через интерактивный аудит.
 
 ## Problem
 
-In fast iteration projects, experimental code tends to accumulate:
-- A feature was tried and abandoned
-- Refactoring left old paths behind
-- Temporary variants stayed in production code
+В проектах с быстрой итерацией экспериментальный код накапливается:
+- Фичу попробовали и забросили
+- После рефакторинга остались старые пути
+- Временные варианты остались в production-коде
 
-Static analysis often misses this, because code can still be referenced while no longer needed by the product.
+Статический анализ часто это пропускает: код может быть формально использован, но уже не нужен продукту.
 
 ## Solution
 
 **Interactive audit:**
-1. Agent finds suspicious areas
-2. Asks whether each area is still needed
-3. Removes confirmed dead code safely with git backup
+1. Агент находит подозрительные участки
+2. Уточняет, нужен ли каждый участок
+3. Безопасно удаляет подтверждённый dead code с git backup
 
 ## Installation
 
@@ -65,25 +65,25 @@ Static analysis often misses this, because code can still be referenced while no
 
 | Agent | Purpose |
 |-------|---------|
-| `feature-scanner` | Full scan: features, routers, pages |
-| `usage-analyzer` | Deep analysis of a specific feature |
-| `cleanup-executor` | Safe removal with git backup |
+| `feature-scanner` | Полный скан: features, routers, pages |
+| `usage-analyzer` | Глубокий анализ конкретной фичи |
+| `cleanup-executor` | Безопасное удаление с git backup |
 
 ### Specialized Auditors
 
 | Agent | Target | What it finds |
 |-------|--------|---------------|
-| `ui-auditor` | `src/design-system/` | Unused components, style inconsistencies |
-| `stores-auditor` | `src/stores/` | Dead Zustand slices, unused selectors |
-| `features-auditor` | `src/features/` | Unused exports, internal dead code |
-| `server-auditor` | `src/server/` | Unused tRPC procedures, dead services |
+| `ui-auditor` | `src/design-system/` | Неиспользуемые компоненты, style inconsistencies |
+| `stores-auditor` | `src/stores/` | Мёртвые Zustand slices, неиспользуемые selectors |
+| `features-auditor` | `src/features/` | Неиспользуемые exports, внутренний dead code |
+| `server-auditor` | `src/server/` | Неиспользуемые tRPC procedures, мёртвые services |
 
 ## Safety
 
-- Never deletes without confirmation
-- Creates git branch before deletion
-- Checks TypeScript after deletion
-- Logs all changes
+- Никогда не удаляет без подтверждения
+- Создаёт git branch перед удалением
+- Проверяет TypeScript после удаления
+- Логирует все изменения
 
 ## License
 
