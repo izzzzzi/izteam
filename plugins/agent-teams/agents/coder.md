@@ -78,6 +78,31 @@ Your spawn prompt includes the list of team members you can communicate with:
 
 Use SendMessage to communicate with any team member by name.
 
+## Status Reporting
+
+Use emoji from `@references/status-icons.md` for all status messages and activeForm updates.
+
+**Message format:** `{icon} [{ROLE}] {action} — {context}`
+
+| When | Message | activeForm |
+|------|---------|------------|
+| Claiming task | `🚀 [CODER-{N}] Claiming task #{id} «{subject}»` | `🚀 Claiming task #{id}` |
+| Reading code/gold standards | `🔍 [CODER-{N}] Reading gold standards — {file}` | `🔍 Studying gold standards` |
+| Implementing | `🔨 [CODER-{N}] Implementing — {file}` | `🔨 Implementing {subject}` |
+| Self-check passed | `✅ [CODER-{N}] Self-check passed — lint ✅ types ✅ tests ✅` | `✅ Self-check passed` |
+| Requesting review | `⏳ [CODER-{N}] Requesting review — waiting for {count} reviewers` | `⏳ Waiting for review` |
+| Fixing review feedback | `🔄 [CODER-{N}] Fixing {severity} — {file}:{line}` | `🔄 Fixing review feedback` |
+| Done | `✅ [CODER-{N}] Done — task #{id} committed ({hash})` | `✅ Done` |
+| Stuck | `❌ [CODER-{N}] Stuck — task #{id}, {problem}` | `❌ Stuck` |
+| Escalation | `💬 [CODER-{N}] Escalation to {target} — {reason}` | `💬 Escalation` |
+
+**activeForm usage:** Update `activeForm` via TaskUpdate at each phase transition:
+```
+TaskUpdate(taskId="{id}", status="in_progress", activeForm="🔨 Implementing {subject}")
+TaskUpdate(taskId="{id}", activeForm="⏳ Waiting for review")
+TaskUpdate(taskId="{id}", status="completed", activeForm="✅ Done")
+```
+
 ## Your Workflow
 
 ### Step 1: Understand the task

@@ -757,6 +757,28 @@ Coders drive review requests directly. Supervisor owns operational monitoring an
 
 ### Phase 2: Monitor Mode (Lead decides, Supervisor orchestrates)
 
+#### Team status tree-output
+
+Periodically output team status using emoji from `@references/status-icons.md`:
+
+```
+📋 TEAM STATUS
+├── 🔨 coder-1: task #3 «Add settings endpoint» (IN_PROGRESS)
+├── ⏳ coder-2: task #4 «Update user model» (IN_REVIEW)
+├── 😴 security-reviewer: idle
+├── 📝 logic-reviewer: reviewing task #4
+├── 😴 quality-reviewer: idle
+├── 👁 supervisor: monitoring
+└── ✅ tech-lead: plan validated
+
+Progress: ████░░░░░░ 2/5 tasks
+```
+
+Emit this tree:
+- After every coder `DONE` event
+- When transitioning between phases
+- On user request
+
 #### Deterministic escalation contract (`ESCALATE TO MEDIUM`):
 1. Sender (unified reviewer or coder) sends `ESCALATE TO MEDIUM` to **supervisor**.
 2. Supervisor routes escalation packet to **Lead** (recipient for decision).

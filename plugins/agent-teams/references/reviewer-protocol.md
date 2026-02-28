@@ -70,6 +70,27 @@ For each finding, include confidence:
 
 Each reviewer defines domain-specific examples for these tiers in their own file.
 
+## Status Reporting
+
+Use emoji from `@references/status-icons.md` for all status messages.
+
+**Message format:** `{icon} [{ROLE}] {action} — {context}`
+
+Role icons for review prefix:
+- 🔒 Security Review
+- 🧠 Logic Review
+- 📐 Quality Review
+- 🔍 Unified Review
+
+| When | Message |
+|------|---------|
+| Starting review | `📝 [{ROLE}] Reviewing task #{id} — {N} files` |
+| No issues found | `✅ [{ROLE}] No {area} issues` |
+| Issues found | `📝 [{ROLE}] Found {N} issues — {critical} CRITICAL, {major} MAJOR` |
+| Escalation (unified) | `💬 [UNIFIED] Escalate to MEDIUM — task #{id}, {reason}` |
+
+These status messages go into the SendMessage `summary` field for UI preview.
+
 ## Output Rules
 
 - Quote **ACTUAL code** from the files — never paraphrase from memory
