@@ -105,6 +105,62 @@ Skip sections that don't apply.
 - Forms use react-hook-form + zod
 ```
 
+## Output Contract
+
+Lead uses your output for: complexity classification, Definition of Done, task descriptions, coder tooling commands, and web researcher context. Missing required sections block planning.
+
+### Required Sections
+
+| Section | Why Lead needs it | Validation |
+|---------|-------------------|------------|
+| **Stack & Tooling** | Passed to web researcher, used in DoD | Must list: framework, language, package manager |
+| **Tooling Commands** | Inserted into every task description and Phase 3 verification | Must include explicit commands for: build, test, lint/typecheck. Use "N/A" if a command does not exist — never omit the field. |
+| **Project Structure** | Lead assigns files to tasks based on this | Must list at least: where pages/routes live, where API lives, where shared code lives |
+| **Existing Similar Features** | Lead uses for complexity triggers and reference-researcher targeting | Must list ≥1 similar feature with files + pattern, OR explicitly state "No similar features found" |
+| **Layers & Sensitive Areas** | Drives complexity classification (MEDIUM triggers #1, #3; COMPLEX triggers #1, #2, #3) | Must state which layers the requested feature touches (DB, API, UI) AND whether touched files are adjacent to or part of auth/payments/billing |
+
+### Optional Sections
+
+| Section | Include when |
+|---------|-------------|
+| **Key Conventions** | Always include if CLAUDE.md or observable patterns exist. Skip only if project has zero conventions. |
+| **Design System** | Include only if the project has a UI layer AND the feature touches UI |
+
+### Section Formats
+
+**Tooling Commands** (must be copy-pasteable, not prose):
+```
+## Tooling Commands
+- Build: `pnpm build`
+- Test: `pnpm vitest`
+- Lint: `pnpm biome check`
+- Typecheck: `pnpm tsc --noEmit`
+```
+
+**Layers & Sensitive Areas** (must be explicit, not implied):
+```
+## Layers & Sensitive Areas
+- Layers touched: DB (Prisma schema), API (tRPC router), UI (React page)
+- Sensitive adjacency: settings router imports from auth middleware (auth-adjacent)
+- Direct sensitive: none
+```
+
+**Existing Similar Features** (must include files + pattern):
+```
+## Similar Features
+- Profile: src/app/profile/page.tsx + src/server/routers/profile.ts
+  Pattern: server component → tRPC query → client form component
+  Files: 3 (page, router, form component)
+```
+
+### Fallback Instructions (for Lead)
+
+If codebase-researcher output is missing required sections:
+1. **Missing Tooling Commands** → Lead runs `cat package.json | grep -A5 scripts` directly (one-time context cost acceptable)
+2. **Missing Layers & Sensitive Areas** → Lead must classify conservatively: assume MEDIUM minimum, treat as "near sensitive areas = yes"
+3. **Missing Project Structure** → Lead dispatches a second codebase-researcher with narrower prompt: "List only directory structure and where API/pages/shared code live"
+4. **Missing Similar Features** → Lead tells reference-researcher to search broadly instead of targeting specific features
+
 <output_rules>
 - Be FAST — skim, don't read deeply. Your job is mapping, not investigating.
 - Return CONDENSED summaries — 3-10 lines per section
@@ -112,4 +168,5 @@ Skip sections that don't apply.
 - Skip sections that don't apply to this project
 - Do NOT return raw file contents — that's reference-researcher's job
 - Total output should be under 50 lines
+- MUST include all Required sections from Output Contract — omitting them blocks Lead's planning
 </output_rules>

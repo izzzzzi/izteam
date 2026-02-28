@@ -105,62 +105,67 @@ That's it. Do NOT read package.json, source files, or explore deeply yourself.
 
 Research is **adaptive** — skip what you already know, research what you don't.
 
-**Decision algorithm:**
+**Decision tree:**
 
 ```
-1. Check --no-research flag → if set, skip ALL research entirely
-2. Check if input contains a brief file (e.g., .briefs/*.md from /interviewed-team-feature)
-   → If YES: read the brief. It already has Project Context section.
-3. Evaluate what you HAVE vs what you NEED:
-
-   NEED for planning:
-   a) Codebase context: stack, structure, affected layers, build/test commands
-   b) Reference files: actual file contents for gold standard examples
-
-   CHECK (a): Does input/brief contain stack, directory structure, and key patterns?
-   → YES: skip codebase-researcher
-   → NO: spawn codebase-researcher
-
-   CHECK (b): Does .conventions/gold-standards/ exist with relevant examples?
-   → YES: you already read them in Step 1, skip reference-researcher
-   → NO: spawn reference-researcher
+--no-research flag set?
+├── YES ─────────────────────────────────────────── SKIP ALL → Step 3
+└── NO
+    │
+    ├── Evaluate CODEBASE CONTEXT (need: stack, structure, layers, build/test)
+    │   │
+    │   │   Input has brief file (.briefs/*.md)?
+    │   ├── YES → read brief; brief has Project Context section
+    │   │         Brief contains stack + directory structure + key patterns?
+    │   │         ├── YES → has_codebase_context = true
+    │   │         └── NO  → has_codebase_context = false
+    │   └── NO  → has_codebase_context = false
+    │
+    ├── Evaluate REFERENCE FILES (need: gold standard examples for each layer)
+    │   │
+    │   │   .conventions/gold-standards/ exists with relevant examples?
+    │   │   (already read in Step 1 if YES)
+    │   ├── YES → has_references = true
+    │   └── NO  → has_references = false
+    │
+    ├── DISPATCH MATRIX
+    │   │
+    │   │   has_codebase_context?  has_references?  ACTION
+    │   ├── false                  false            spawn BOTH (parallel)
+    │   ├── false                  true             spawn codebase-researcher ONLY
+    │   ├── true                   false            spawn reference-researcher ONLY
+    │   └── true                   true             SKIP ALL → Step 3
+    │
+    └── Evaluate WEB RESEARCH (independent, additive)
+        │
+        │   Feature involves unfamiliar library/pattern?
+        │   (OAuth, real-time, file uploads, unfamiliar API, etc.)
+        ├── YES → spawn web-researcher (parallel with above)
+        └── NO  → skip
 ```
 
-**When BOTH researchers needed** (no brief, no .conventions/):
+**Spawn templates by dispatch outcome:**
 
+When codebase-researcher needed:
 ```
 Task(
   subagent_type="agent-teams:codebase-researcher",
   prompt="Feature to plan: '{feature description}'"
 )
-
-Task(
-  subagent_type="agent-teams:reference-researcher",
-  prompt="Feature to implement: '{feature description}'.
-Find canonical reference files for each layer this feature touches."
-)
 ```
 
-**When only reference-researcher needed** (brief provides codebase context, but no .conventions/):
-
+When reference-researcher needed (include codebase context if available):
 ```
 Task(
   subagent_type="agent-teams:reference-researcher",
   prompt="Feature to implement: '{feature description}'.
 Find canonical reference files for each layer this feature touches.
-Project context: {stack and structure from brief}"
+{IF has_codebase_context: 'Project context: {stack and structure from brief}'}"
 )
 ```
 
-**When NEITHER needed** (brief + .conventions/ with relevant gold standards, or --no-research):
-
-Skip directly to Step 3. Use context from brief + .conventions/ for planning.
-
-**Optionally spawn a web researcher** if the feature requires external knowledge:
-
+When web-researcher needed:
 ```
-If the feature involves a library/pattern you're unsure about (OAuth, real-time, file uploads, etc.):
-
 Task(
   subagent_type="general-purpose",
   prompt="Research best practices for implementing '{specific topic}' in a {framework} project.
@@ -384,6 +389,19 @@ Then set it as blocked by all other tasks via TaskUpdate.
 
 #### Step 4: Spawn Tech Lead and validate plan
 
+**Decision tree:**
+
+```
+Complexity?
+├── SIMPLE → skip Tech Lead spawn, skip plan validation → Step 5
+└── MEDIUM / COMPLEX
+    ├── Spawn Tech Lead
+    ├── Send VALIDATE PLAN
+    └── Wait for response
+        ├── PLAN OK → proceed to Step 4b
+        └── Suggests changes → adjust tasks → re-send VALIDATE PLAN (loop)
+```
+
 Spawn Tech Lead (permanent teammate, uses `agents/tech-lead.md`):
 ```
 Task(
@@ -414,7 +432,24 @@ Wait for Tech Lead response. If they suggest changes → adjust tasks → re-val
 
 After Tech Lead validates the plan, run a pre-implementation risk analysis to catch problems BEFORE code is written.
 
-**Skip this step for SIMPLE tasks** — the overhead isn't worth it.
+**Decision tree:**
+
+```
+Complexity?
+├── SIMPLE → skip entirely → Step 5
+└── MEDIUM / COMPLEX
+    ├── 1. Tech Lead identifies risks
+    ├── 2. Classify risks
+    │   └── For each risk:
+    │       ├── CRITICAL → spawn risk-tester
+    │       ├── MAJOR (up to 3) → spawn risk-tester
+    │       └── MINOR → skip
+    ├── 3. Forward findings to Tech Lead
+    └── 4. Apply recommendations
+        ├── New tasks needed? → TaskCreate
+        ├── Reordering needed? → TaskUpdate dependencies
+        └── User decision needed? → notify user (rare exception)
+```
 
 1. **Tech Lead identifies risks:**
    ```
@@ -498,6 +533,23 @@ After Tech Lead validates the plan, run a pre-implementation risk analysis to ca
 **Real-world example:** See `references/risk-testing-example.md` for a detailed case study of how risk analysis caught a silent data loss bug (wrong cursor field) that post-implementation review would have missed.
 
 #### Step 5: Spawn always-on Supervisor, then team, then state handoff
+
+**Spawn order decision tree:**
+
+```
+ALL complexities:
+├── 1. Supervisor (mandatory, always first)
+├── 2. STATE_OWNERSHIP_HANDOFF → wait for ACK
+│   ├── ACK received → continue
+│   ├── HANDOFF_DUPLICATE → no-op, continue
+│   ├── HANDOFF_MISSING → block, resolve, retry
+│   └── SPLIT_BRAIN_DETECTED → reconcile lock, Lead arbitrates
+├── 3. Reviewers (complexity-driven)
+│   ├── SIMPLE → unified-reviewer (1 agent)
+│   └── MEDIUM / COMPLEX → security + logic + quality (3 agents, parallel)
+├── 4. Coders (up to --coders, parallel)
+└── 5. Write state.md
+```
 
 Spawn Supervisor first and keep it alive for the full lifecycle. Reviewers/tech-lead/coders are then spawned by complexity.
 
@@ -665,6 +717,42 @@ When unassigned tasks remain and capacity is available:
 3. Supervisor updates `state.md` roster/task assignment and confirms to coder.
 
 ### Phase 3: Completion & Verification
+
+**Phase 3 decision tree:**
+
+```
+All tasks completed?
+├── NO → stay in Phase 2
+└── YES
+    │
+    ├── 1. Integration verification
+    │   ├── Run build
+    │   │   ├── PASS → continue
+    │   │   └── FAIL → create fix task → assign coder → review → rerun (loop)
+    │   └── Run tests
+    │       ├── PASS → continue
+    │       └── FAIL → create fix task → assign coder → review → rerun (loop)
+    │
+    ├── 2. Conventions update (assign conventions task to coder)
+    │
+    ├── 3. Tech Lead consistency check (MEDIUM/COMPLEX only)
+    │
+    ├── 4. Completion gate
+    │   ├── .conventions/ exists AND modified this session? → PASS
+    │   └── otherwise → STOP, run conventions task, loop back to gate
+    │
+    ├── 5. Teardown FSM
+    │   ├── All ACKs received within 3 rounds? → READY_TO_DELETE
+    │   └── Missing ACKs after retries?
+    │       ├── Lead grants FORCED_FINALIZE_ACK → READY_TO_DELETE
+    │       └── Lead denies → TEARDOWN_FAILED_SAFE
+    │
+    ├── 6. Print summary report
+    │
+    └── 7. Final dispatch
+        ├── READY_TO_DELETE → shutdown supervisor → TeamDelete
+        └── TEARDOWN_FAILED_SAFE → escalate to user (no TeamDelete)
+```
 
 When all tasks are completed:
 
