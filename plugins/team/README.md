@@ -28,8 +28,8 @@ Restart Claude Code after enabling.
 ## Installation
 
 ```bash
-/plugin marketplace add izmailovilya/ilia-izmailov-plugins
-/plugin install team@ilia-izmailov-plugins
+/plugin marketplace add izzzzzi/izteam
+/plugin install team@izteam
 ```
 
 ## Usage

@@ -21,8 +21,8 @@ In vibe-coding lots of experimental code gets created:
 ## Installation
 
 ```bash
-/plugin marketplace add izmailovilya/ilia-izmailov-plugins
-/plugin install audit@ilia-izmailov-plugins
+/plugin marketplace add izzzzzi/izteam
+/plugin install audit@izteam
 ```
 
 ## Usage

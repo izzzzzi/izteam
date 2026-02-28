@@ -5,8 +5,8 @@ A plugin for deep structured thinking before implementation.
 ## Installation
 
 ```bash
-/plugin marketplace add izmailovilya/ilia-izmailov-plugins
-/plugin install think@ilia-izmailov-plugins
+/plugin marketplace add izzzzzi/izteam
+/plugin install think@izteam
 ```
 
 ## Usage
