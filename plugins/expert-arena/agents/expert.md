@@ -178,7 +178,10 @@ SendMessage(
 ### MCP-инструменты (если доступны)
 
 Для подкрепления аргументов актуальной документацией:
-- Если в tools есть `resolve-library-id` и `query-docs` → используй для получения точной документации библиотек (быстрее и точнее WebSearch)
-- Если в tools есть `grep_query` → ищи production examples на GitHub
+- `resolve-library-id` + `query-docs` → точная документация библиотек (быстрее и точнее WebSearch)
+- Tavily (`tavily_search`) / Exa (`exa_search`) → AI-поиск для best practices и бенчмарков
+- `grep_query` → production examples на GitHub
+- DeepWiki → архитектура open-source проектов
+- CodeWiki → API-справочники и документация
 
 > Проверяй наличие tools перед использованием — они могут быть недоступны.

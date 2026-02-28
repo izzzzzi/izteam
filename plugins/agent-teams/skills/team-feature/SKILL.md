@@ -64,6 +64,10 @@ The `.conventions/` directory is the **single source of truth** for project patt
   checks/                   # automated pass/fail rules
     naming.md               # naming conventions (regex patterns, examples)
     imports.md              # allowed/forbidden import patterns
+  tool-chains/              # persistent build/test/lint commands
+    commands.yml            # verified project commands
+  decisions/                # reusable arch decisions across sessions
+    state-management.md     # e.g., "use Zustand, not Redux"
 ```
 
 **If `.conventions/` does not exist:** Researchers will identify patterns from the codebase. After the feature is complete, you will propose creating `.conventions/` with discovered patterns.
@@ -96,7 +100,12 @@ Only read what's tiny and critical:
 2. Quick Glob("*") — see top-level layout (just file/dir names, no content)
 3. Check if .conventions/ exists (Glob(".conventions/**/*"))
    - If YES: read all gold-standards/*.* files — these are short (20-30 lines each)
+   - If YES: read .conventions/tool-chains/commands.yml (if exists) — build/test/lint commands
+   - If YES: read .conventions/decisions/*.md (if exists) — past architectural decisions
    - If NO: researchers will discover patterns, you'll propose creating it later
+4. Check if .project-profile.yml exists
+   - If YES: read it — contains stack, structure, key libraries (eliminates codebase-researcher)
+   - If NO: codebase-researcher will create it later
 ```
 
 That's it. Do NOT read package.json, source files, or explore deeply yourself.
@@ -114,12 +123,15 @@ Research is **adaptive** — skip what you already know, research what you don't
     │
     ├── Evaluate CODEBASE CONTEXT (need: stack, structure, layers, build/test)
     │   │
-    │   │   Input has brief file (.briefs/*.md)?
-    │   ├── YES → read brief; brief has Project Context section
-    │   │         Brief contains stack + directory structure + key patterns?
-    │   │         ├── YES → has_codebase_context = true
-    │   │         └── NO  → has_codebase_context = false
-    │   └── NO  → has_codebase_context = false
+    │   │   .project-profile.yml exists and is fresh?
+    │   ├── YES → has_codebase_context = true (profile has stack + structure)
+    │   └── NO
+    │       │   Input has brief file (.briefs/*.md)?
+    │       ├── YES → read brief; brief has Project Context section
+    │       │         Brief contains stack + directory structure + key patterns?
+    │       │         ├── YES → has_codebase_context = true
+    │       │         └── NO  → has_codebase_context = false
+    │       └── NO  → has_codebase_context = false
     │
     ├── Evaluate REFERENCE FILES (need: gold standard examples for each layer)
     │   │
@@ -170,8 +182,16 @@ Task(
   subagent_type="general-purpose",
   prompt="Research best practices for implementing '{specific topic}' in a {framework} project.
 
-  Use WebSearch and/or Context7 to find:
-  1. Current recommended approach (2024-2025 best practices)
+  Use these tools (try in order of preference):
+  1. Context7 (resolve-library-id → query-docs) — authoritative library docs
+  2. Exa / Tavily — AI-powered search for best practices
+  3. CodeWiki — code documentation search
+  4. WebSearch — general web search (include year 2025-2026 in queries)
+  5. GitHub Grep (grep_query) — production code examples
+  6. DeepWiki — open-source project documentation
+
+  Find:
+  1. Current recommended approach (2025-2026 best practices)
   2. Key libraries or built-in features to use
   3. Common pitfalls to avoid
   4. A brief example of the pattern
@@ -182,11 +202,66 @@ Task(
   - Recommended approach + why
   - Key library/API to use
   - 2-3 pitfalls to watch for
-  - Pattern example (pseudocode, not full implementation)"
+  - Pattern example (pseudocode, not full implementation)
+
+  If a tool is unavailable, skip it and use the next one. Always note which sources you used."
 )
 ```
 
 **You can also dispatch researchers mid-session** — when a coder gets stuck, when you need best practices for a decision, or when Tech Lead raises an architectural question.
+
+#### Step 2b: Handle researcher failures
+
+When a researcher returns empty, incomplete, or fails entirely — don't stop. Follow this fallback protocol:
+
+```
+Researcher returned empty/failed?
+├── Codebase researcher failed
+│   ├── Re-dispatch with narrower scope (specific directories, not full scan)
+│   └── If still fails → proceed with Glob/Grep output from Step 1 only
+│       → mark "LIMITED CODEBASE CONTEXT" in state.md
+│
+├── Reference researcher failed
+│   ├── Fall back to .conventions/gold-standards/ (if exists)
+│   └── If no conventions → coders work without gold standards
+│       → mark "NO REFERENCE FILES" in state.md
+│       → quality risk: add extra review scrutiny
+│
+├── Web researcher failed
+│   ├── Retry with different search terms / different MCP tool
+│   └── If still fails → proceed without external research
+│       → mark "LIMITED RESEARCH" in state.md
+│       → coders note [INFERRED] on any best-practice claims
+│
+└── Multiple researchers failed
+    → mark "DEGRADED RESEARCH" in state.md
+    → proceed with available data, increase review scrutiny
+    → Supervisor records TOOL_UNAVAILABLE events
+```
+
+**Never block on research failures.** Proceed with reduced confidence and let reviewers catch gaps. If `.project-profile.yml` exists in `.conventions/`, use it as fallback for codebase context.
+
+#### Step 2c: Staged research for COMPLEX features
+
+For COMPLEX features (4+ MEDIUM triggers or 1+ COMPLEX trigger), research benefits from staging:
+
+```
+COMPLEX?
+├── NO → standard parallel research (Step 2)
+└── YES → staged research:
+    │
+    ├── Phase A: Codebase context (parallel)
+    │   ├── codebase-researcher → stack, structure, patterns
+    │   └── reference-researcher → gold standard examples
+    │
+    ├── Phase B: External research (after Phase A, informed by findings)
+    │   ├── web-researcher → best practices FOR THIS SPECIFIC STACK
+    │   └── Additional reference-researcher → examples from similar projects
+    │
+    └── Lead synthesizes both phases before planning
+```
+
+Phase B is informed by Phase A: if codebase uses tRPC, web-researcher searches for "tRPC best practices" not generic "API best practices". This produces higher-quality external research.
 
 #### Step 3: Classify complexity and synthesize plan
 

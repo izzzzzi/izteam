@@ -116,6 +116,7 @@ You are the **only writer** for operational state in:
 | `SPLIT_BRAIN_DETECTED` | Supervisor | Lead | Supervisor -> Lead | Supervisor | Enter `RECONCILE_LOCK` and request Lead arbitration |
 | `FORCED_FINALIZE_CANDIDATE` | Supervisor | Lead | Supervisor -> Lead | Supervisor | Request explicit `FORCED_FINALIZE_ACK` decision from Lead |
 | `FORCED_FINALIZE_ACK` | Lead | Supervisor | Lead -> Supervisor | Supervisor | Execute forced-finalize protocol and transition toward `READY_TO_DELETE` |
+| `TOOL_UNAVAILABLE` | Any agent | Supervisor (routing), then Lead (decision) | Source -> Supervisor -> Lead | Supervisor | Record in state.md, route to Lead for decision: skip / retry / proceed with caveat |
 
 This is the normative routing contract.
 
@@ -267,7 +268,20 @@ Actions:
 2. Suggest reassignment strategy (same role replacement, split task, specialist routing).
 3. Update state after Lead decision and publish new ownership map.
 
-### 5) Teardown Readiness
+### 5) Tool Unavailability
+
+Trigger examples:
+- agent reports MCP tool not found or erroring
+- researcher fails because WebSearch/WebFetch/Context7 is unavailable
+- coder reports Bash command fails due to missing tool/dependency
+
+Actions:
+1. Record `TOOL_UNAVAILABLE` in state.md with: tool name, agent name, task ID, timestamp.
+2. Route to Lead with decision request: skip capability / retry with different query / proceed with caveat.
+3. If same tool fails for 3+ agents → escalate as systemic issue to Lead.
+4. Track resolution for post-mortem health summary.
+
+### 6) Teardown Readiness
 
 Teardown FSM:
 - `TEARDOWN_INIT` -> `SHUTDOWN_REQUESTED` -> `WAITING_ACKS` -> `RETRYING` -> `READY_TO_DELETE`
@@ -343,7 +357,7 @@ Healthy: {count}
 
 Enums:
 - severity ∈ {INFO, WARN, CRITICAL}
-- event_type ∈ {IDLE_BREACH, REVIEW_SLA_BREACH, LOOP_SUSPECTED, DUPLICATE_TASK_KEY, OVERLAP_SCOPE, STUCK, HANDOFF_DUPLICATE, HANDOFF_MISSING, SPLIT_BRAIN_DETECTED, STATE_DIVERGENCE, RECONCILE_CONFLICT, SNAPSHOT_NOT_FOUND, SNAPSHOT_CONFLICT, RECONCILE_LOCK_ENTER, RECONCILE_LOCK_EXIT, TEARDOWN_BLOCKED, FORCED_FINALIZE_CANDIDATE, DECISIONS_SCOPE_VIOLATION, DECISIONS_MARKER_MISSING}
+- event_type ∈ {IDLE_BREACH, REVIEW_SLA_BREACH, LOOP_SUSPECTED, DUPLICATE_TASK_KEY, OVERLAP_SCOPE, STUCK, TOOL_UNAVAILABLE, HANDOFF_DUPLICATE, HANDOFF_MISSING, SPLIT_BRAIN_DETECTED, STATE_DIVERGENCE, RECONCILE_CONFLICT, SNAPSHOT_NOT_FOUND, SNAPSHOT_CONFLICT, RECONCILE_LOCK_ENTER, RECONCILE_LOCK_EXIT, TEARDOWN_BLOCKED, FORCED_FINALIZE_CANDIDATE, DECISIONS_SCOPE_VIOLATION, DECISIONS_MARKER_MISSING}
 - action_type ∈ {PING, NUDGE, ESCALATE, REASSIGN_PROPOSAL, TEARDOWN_RETRY, RECONCILE_LOCK_ENTER, RECONCILE_LOCK_EXIT, FORCED_FINALIZE}
 
 Alerts:

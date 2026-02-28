@@ -57,8 +57,10 @@ model: sonnet
 - Документация библиотек — если в tools есть `resolve-library-id` и `query-docs`:
   1. `resolve-library-id` с названием библиотеки → получи ID
   2. `query-docs` с конкретным вопросом → актуальный API и примеры кода
+- AI-поиск — Tavily (`tavily_search`) или Exa (`exa_search`) для best practices и ранжированных результатов
 - Code examples на GitHub — если в tools есть `grep_query`:
   - `grep_query(query="[паттерн]", language="[язык]")` → реальные примеры использования
+- Документация — DeepWiki для архитектуры open-source проектов, CodeWiki для API-справочников
 
 > Не все MCP tools могут быть доступны. Проверяй наличие перед использованием.
 > Если MCP недоступен — WebSearch и WebFetch всегда работают.

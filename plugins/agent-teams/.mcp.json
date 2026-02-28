@@ -1,0 +1,29 @@
+{
+  "context7": {
+    "command": "npx",
+    "args": ["-y", "@upstash/context7-mcp"]
+  },
+  "deepwiki": {
+    "type": "http",
+    "url": "https://mcp.deepwiki.com/mcp"
+  },
+  "exa": {
+    "type": "http",
+    "url": "https://mcp.exa.ai/mcp"
+  },
+  "ddg-search": {
+    "command": "npx",
+    "args": ["-y", "@oevortex/ddg_search@latest"]
+  },
+  "codewiki": {
+    "command": "npx",
+    "args": ["-y", "codewiki-mcp@latest"]
+  },
+  "tavily": {
+    "command": "npx",
+    "args": ["-y", "tavily-mcp"],
+    "env": {
+      "TAVILY_API_KEY": "${TAVILY_API_KEY}"
+    }
+  }
+}

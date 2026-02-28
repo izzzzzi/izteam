@@ -54,15 +54,24 @@ If the aspect involves libraries, frameworks, or external tools — gather curre
 1. `resolve-library-id` with the library name → get library ID
 2. `query-docs` with specific question → get up-to-date API, code examples
 
+**AI-powered search** (if available):
+- Tavily (`tavily_search`) — AI search with ranked results, great for best practices
+- Exa (`exa_search`) — semantic search, great for finding specific patterns
+
 **Code examples on GitHub** (if `grep_query` tool is available):
 - Search for production usage patterns: `grep_query(query="[pattern]", language="[lang]")`
 - Filter by known quality repos if applicable
+
+**Documentation sources** (if available):
+- DeepWiki — open-source project documentation and architecture
+- CodeWiki — code documentation and API references
 
 **General web search** (always available):
 - `WebSearch` for current best practices (include year 2025-2026 in queries)
 - `WebFetch` for reading specific documentation pages
 
 **If no external data is needed** for this aspect — skip this step entirely.
+Not all tools may be available. Check before using and fall back to the next option.
 
 ### 3. Expert Analysis
 
