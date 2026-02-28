@@ -1,0 +1,59 @@
+name: Validate Plugins
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate marketplace.json
+        run: |
+          echo "Checking marketplace.json..."
+          cat .claude-plugin/marketplace.json | jq . > /dev/null
+          echo "✅ marketplace.json is valid JSON"
+
+      - name: Validate all plugin.json files
+        run: |
+          for f in plugins/*/.claude-plugin/plugin.json; do
+            echo "Checking $f..."
+            cat "$f" | jq . > /dev/null
+            echo "✅ $f is valid JSON"
+          done
+
+      - name: Check version consistency
+        run: |
+          ERRORS=0
+          for plugin_dir in plugins/*/; do
+            name=$(jq -r '.name' "$plugin_dir/.claude-plugin/plugin.json")
+            pv=$(jq -r '.version' "$plugin_dir/.claude-plugin/plugin.json")
+            mv=$(jq -r --arg n "$name" '.plugins[] | select(.name == $n) | .version' .claude-plugin/marketplace.json)
+            if [ "$pv" != "$mv" ]; then
+              echo "❌ Version mismatch for $name: plugin.json=$pv, marketplace.json=$mv"
+              ERRORS=1
+            else
+              echo "✅ $name: v$pv"
+            fi
+          done
+          if [ "$ERRORS" -eq 1 ]; then
+            echo "::error::Version mismatch detected between plugin.json and marketplace.json"
+            exit 1
+          fi
+
+      - name: Check required fields in plugin.json
+        run: |
+          for f in plugins/*/.claude-plugin/plugin.json; do
+            name=$(jq -r '.name' "$f")
+            version=$(jq -r '.version' "$f")
+            desc=$(jq -r '.description' "$f")
+            if [ "$name" = "null" ] || [ "$version" = "null" ] || [ "$desc" = "null" ]; then
+              echo "❌ $f missing required fields (name, version, description)"
+              exit 1
+            fi
+            echo "✅ $f has all required fields"
+          done
