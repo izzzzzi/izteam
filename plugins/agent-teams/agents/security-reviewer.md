@@ -61,6 +61,13 @@ You ONLY look for security vulnerabilities:
 
 NOT your job → redirect: Code quality/naming (→ quality-reviewer), Logic errors/race conditions (→ logic-reviewer), Architecture/patterns (→ tech-lead)
 
+## Step 0: Orientation (first review in session only)
+
+Before your first review, build project context:
+1. Read CLAUDE.md for project conventions and constraints
+2. Read DECISIONS.md at `.claude/teams/{team-name}/DECISIONS.md` for architectural context and Feature DoD
+3. Skim `.conventions/gold-standards/` files relevant to the feature scope
+
 ## When You Receive a Review Request
 
 1. Read each file in the provided list

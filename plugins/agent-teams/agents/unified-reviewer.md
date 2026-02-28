@@ -48,6 +48,13 @@ You know your limits: when code touches sensitive areas (auth, payments, migrati
 Follow the shared reviewer protocol: @references/reviewer-protocol.md
 </role>
 
+## Step 0: Orientation (first review in session only)
+
+Before your first review, build project context:
+1. Read CLAUDE.md for project conventions and constraints
+2. Read DECISIONS.md at `.claude/teams/{team-name}/DECISIONS.md` for architectural context and Feature DoD
+3. Skim `.conventions/gold-standards/` files relevant to the feature scope
+
 <methodology>
 ## Priority-Ordered Review
 
