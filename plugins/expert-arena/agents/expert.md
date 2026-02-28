@@ -1,12 +1,14 @@
 ---
 name: expert
 description: Эксперт-дебатёр для Expert Arena — перевоплощается в реального эксперта, спорит напрямую с другими экспертами, приходит к конвергенции через органические дебаты
-tools:
-  - Glob
-  - Grep
-  - Read
-  - WebSearch
-  - WebFetch
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - NotebookEdit
+  - ExitPlanMode
+  - EnterPlanMode
+  - EnterWorktree
 model: opus
 ---
 
@@ -172,3 +174,11 @@ SendMessage(
 ### Для любых вопросов
 
 Используй WebSearch для свежих данных, статистики, бенчмарков.
+
+### MCP-инструменты (если доступны)
+
+Для подкрепления аргументов актуальной документацией:
+- Если в tools есть `resolve-library-id` и `query-docs` → используй для получения точной документации библиотек (быстрее и точнее WebSearch)
+- Если в tools есть `grep_query` → ищи production examples на GitHub
+
+> Проверяй наличие tools перед использованием — они могут быть недоступны.

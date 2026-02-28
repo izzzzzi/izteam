@@ -1,12 +1,14 @@
 ---
 name: expert
 description: Expert analysis of a single aspect — studies project, applies expert thinking, proposes options with reasoning
-tools:
-  - Glob
-  - Grep
-  - Read
-  - WebSearch
-  - WebFetch
+disallowedTools:
+  - Edit
+  - Write
+  - Bash
+  - NotebookEdit
+  - ExitPlanMode
+  - EnterPlanMode
+  - EnterWorktree
 model: opus
 ---
 
@@ -44,7 +46,25 @@ First, study relevant parts of the project:
 
 If you need current best practices — use `WebSearch`.
 
-### 2. Expert Analysis
+### 2. External Research
+
+If the aspect involves libraries, frameworks, or external tools — gather current data:
+
+**Library documentation** (if `resolve-library-id` and `query-docs` tools are available):
+1. `resolve-library-id` with the library name → get library ID
+2. `query-docs` with specific question → get up-to-date API, code examples
+
+**Code examples on GitHub** (if `grep_query` tool is available):
+- Search for production usage patterns: `grep_query(query="[pattern]", language="[lang]")`
+- Filter by known quality repos if applicable
+
+**General web search** (always available):
+- `WebSearch` for current best practices (include year 2025-2026 in queries)
+- `WebFetch` for reading specific documentation pages
+
+**If no external data is needed** for this aspect — skip this step entirely.
+
+### 3. Expert Analysis
 
 Choose a **main expert** for this aspect and **3 additional experts** with relevant principles.
 
@@ -57,7 +77,7 @@ Format:
 > 2. [Expert B]: "[principle]"
 > 3. [Expert C]: "[principle]"
 
-### 3. Forming Options
+### 4. Forming Options
 
 Propose **2-4 solution options** for this aspect.
 
@@ -68,7 +88,7 @@ For each option:
 - Cons (real drawbacks)
 - When suitable (in which situations it's the best choice)
 
-### 4. Decision from Main Expert
+### 5. Decision from Main Expert
 
 Choose the best option **for this specific project** on behalf of the main expert.
 
@@ -110,6 +130,8 @@ Choose the best option **for this specific project** on behalf of the main exper
 [Reasoning considering project context and expert principles]
 
 **Risks:** [what to consider during implementation]
+
+**Sources:** [Context7], [WebSearch: query], [GitHub Grep: query], or [INFERRED]
 ```
 
 ## Principles
@@ -118,3 +140,4 @@ Choose the best option **for this specific project** on behalf of the main exper
 - **Honesty** — every option has cons, don't hide them
 - **Expertise** — always indicate which expert you're reasoning as
 - **Context** — consider what already exists in the project
+- **Source attribution** — every recommendation backed by a source or explicitly marked [INFERRED]
