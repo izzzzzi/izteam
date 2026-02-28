@@ -1,6 +1,6 @@
 {
   "name": "arena",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Expert debate arena — dynamic experts debate and converge on optimal solutions for any domain",
   "author": {
     "name": "izzzzzi",
@@ -8,5 +8,12 @@
   },
   "repository": "https://github.com/izzzzzi/izteam",
   "license": "MIT",
-  "keywords": ["experts", "debate", "arena", "consensus", "decision-making", "team"]
+  "keywords": [
+    "experts",
+    "debate",
+    "arena",
+    "consensus",
+    "decision-making",
+    "team"
+  ]
 }

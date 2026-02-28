@@ -1,6 +1,6 @@
 {
   "name": "team",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Slash commands that launch Agent Teams with always-on Supervisor for feature implementation with code review gates and deterministic teardown",
   "author": {
     "name": "Ilya"
