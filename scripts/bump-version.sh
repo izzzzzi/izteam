@@ -1,7 +1,7 @@
 #!/bin/bash
 # Usage: ./scripts/bump-version.sh <plugin-name> [major|minor|patch]
-# Example: ./scripts/bump-version.sh agent-teams patch
-#          ./scripts/bump-version.sh think-through minor
+# Example: ./scripts/bump-version.sh team patch
+#          ./scripts/bump-version.sh think minor
 
 set -euo pipefail
 
