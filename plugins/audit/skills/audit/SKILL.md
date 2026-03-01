@@ -1,6 +1,11 @@
 ---
 name: audit
-description: Interactive feature audit — finds dead code and experiments, asks if they're needed
+description: >-
+  Conducts an interactive feature audit to find dead code, abandoned
+  experiments, and unused features, then asks the user about each one. Use when
+  the user wants to clean up the codebase, find unused code, or review
+  experimental features. Don't use for security audits, performance profiling,
+  dependency scanning, or code quality reviews.
 allowed-tools:
   - Task
   - Read
@@ -14,11 +19,11 @@ model: opus
 
 # Vibe Audit — Interactive Feature Cleanup
 
-You are an interactive audit assistant. Your job is to find potentially dead or experimental code and **ask the user** whether it's still needed.
+The audit skill finds potentially dead or experimental code and **asks the user** whether it's still needed.
 
 ## Philosophy
 
-In vibe-coding, lots of experimental code gets created. Some becomes core features, some gets abandoned. You help identify what's what through **conversation**, not assumptions.
+In vibe-coding, lots of experimental code gets created. Some becomes core features, some gets abandoned. This skill identifies what's what through **conversation**, not assumptions.
 
 ## Workflow
 
@@ -43,10 +48,10 @@ For EACH suspicious item found, use AskUserQuestion:
 
 ```
 AskUserQuestion with options:
-- "🗑️ Удалить — это мёртвый код"
-- "⚠️ Deprecated — скоро удалим"
-- "✅ Нужно — это активная фича"
-- "🤔 Не уверен — надо разобраться"
+- "🗑️ Delete — this is dead code"
+- "⚠️ Deprecated — remove soon"
+- "✅ Keep — this is an active feature"
+- "🤔 Not sure — needs investigation"
 ```
 
 **Important:** Ask ONE feature at a time. Wait for answer before proceeding.
@@ -58,21 +63,21 @@ After all questions answered, create action plan:
 ```markdown
 # 🧹 Vibe Audit Report
 
-## Решения
+## Decisions
 
-### 🗑️ К удалению
-- [feature] — причина: [user's answer]
+### 🗑️ To Delete
+- [feature] — reason: [user's answer]
 
 ### ⚠️ Deprecated
-- [feature] — удалить до: [date]
+- [feature] — remove by: [date]
 
-### ✅ Оставить
-- [feature] — задокументировать: [what it does]
+### ✅ Keep
+- [feature] — document: [what it does]
 
-## Следующие шаги
-1. [ ] Удалить [X] файлов
-2. [ ] Добавить @deprecated к [Y]
-3. [ ] Обновить документацию для [Z]
+## Next Steps
+1. [ ] Delete [X] files
+2. [ ] Add @deprecated to [Y]
+3. [ ] Update documentation for [Z]
 ```
 
 ## Question Templates
@@ -82,13 +87,13 @@ When asking about a feature, provide context:
 ```
 📦 **{feature_name}**
 
-Что нашёл:
-- Файлы: {file_count} ({file_list})
-- Использование: {usage_description}
-- Последний коммит: {last_commit_date}
-- Связи: {dependencies}
+What was found:
+- Files: {file_count} ({file_list})
+- Usage: {usage_description}
+- Last commit: {last_commit_date}
+- Dependencies: {dependencies}
 
-Это нужно?
+Is this needed?
 ```
 
 ## Scope Options
@@ -103,26 +108,41 @@ When asking about a feature, provide context:
 
 ### Agent Selection
 
-Based on scope argument, run the appropriate agent:
+```
+Scope argument?
+├── (empty) or "all"
+│   └── Task(audit:feature-scanner) — full codebase scan
+├── "features"
+│   └── Task(audit:features-auditor) — src/features/ analysis
+├── "server"
+│   └── Task(audit:server-auditor) — src/server/ analysis
+├── "ui"
+│   └── Task(audit:ui-auditor) — src/design-system/ analysis
+├── "stores"
+│   └── Task(audit:stores-auditor) — src/stores/ analysis
+└── "all" (explicit)
+    └── Run ALL auditors in parallel:
+        ├── Task(audit:feature-scanner)
+        ├── Task(audit:features-auditor)
+        ├── Task(audit:server-auditor)
+        ├── Task(audit:ui-auditor)
+        └── Task(audit:stores-auditor)
+```
 
-```
-/audit           → Task(audit:feature-scanner)
-/audit features  → Task(audit:features-auditor)
-/audit server    → Task(audit:server-auditor)
-/audit ui        → Task(audit:ui-auditor)
-/audit stores    → Task(audit:stores-auditor)
-/audit all       → Run ALL auditors in parallel:
-                        - Task(audit:feature-scanner)
-                        - Task(audit:features-auditor)
-                        - Task(audit:server-auditor)
-                        - Task(audit:ui-auditor)
-                        - Task(audit:stores-auditor)
-```
+## Error Handling
+
+| Situation | Action |
+|-----------|--------|
+| Scanner agent fails or returns empty | Inform user: "Scan returned no results. Try narrowing scope." Suggest specific directories. |
+| Partial scan results | Report what was found. Note which areas were not scanned. |
+| Git operations fail in cleanup | Stop cleanup immediately. Report error. Do not proceed with further deletions. |
+| TypeScript check fails after deletion | Report which deletion caused the failure. Suggest rollback via git. |
+| Project does not use expected stack (no tRPC, no Zustand, etc.) | Adapt scanning patterns to the actual stack. Skip inapplicable auditors. |
 
 ## Important Rules
 
-1. **Never delete without asking** — always get user confirmation
+1. **Never delete without confirmation** — the cleanup-executor agent enforces this with git backup
 2. **One question at a time** — don't overwhelm with batch questions
-3. **Provide context** — show what you found before asking
-4. **Accept "не уверен"** — some things need more investigation
+3. **Provide context** — show findings before asking
+4. **Accept "not sure"** — some things need more investigation
 5. **Track decisions** — remember what user said for the report

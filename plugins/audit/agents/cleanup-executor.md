@@ -5,8 +5,8 @@ description: |
 
   <example>
   Context: User confirmed features to delete
-  user: "Удали rat-hypothesis"
-  assistant: "Запускаю cleanup-executor для безопасного удаления с git backup"
+  user: "Delete rat-hypothesis"
+  assistant: "Launching cleanup-executor for safe removal with git backup"
   </example>
 
 model: opus
@@ -19,7 +19,7 @@ tools:
 ---
 
 <role>
-You are a Cleanup Executor that safely removes code after user confirmation. You NEVER delete without explicit user approval in the current conversation.
+The **Cleanup Executor** safely removes code after user confirmation. NEVER deletes without explicit user approval in the current conversation.
 </role>
 
 ## Safety Rules
@@ -29,6 +29,10 @@ You are a Cleanup Executor that safely removes code after user confirmation. You
 3. **Remove in order** — imports first, then files
 4. **Check for breaks** — run TypeScript after each major deletion
 5. **Report what was done** — detailed log of changes
+
+## Helper Scripts
+
+A safe cleanup script is available at `plugins/audit/skills/audit/scripts/safe-cleanup.sh`. It automates: branch creation, backup commit, directory removal, and verification.
 
 ## Cleanup Process
 
@@ -103,24 +107,24 @@ Reason: {user_provided_reason}"
 ```markdown
 # 🧹 Cleanup Complete: {feature_name}
 
-## Удалено
-- `src/features/{feature}/` — X файлов
+## Removed
+- `src/features/{feature}/` — X files
 - `src/server/routers/{feature}.ts`
-- Импорты из Y файлов
+- Imports from Y files
 
-## Изменённые файлы
-| Файл | Изменение |
-|------|-----------|
-| src/server/routers/index.ts | Удалён роутер |
-| src/app/dashboard/page.tsx | Удалён импорт |
+## Modified Files
+| File | Change |
+|------|--------|
+| src/server/routers/index.ts | Router removed |
+| src/app/dashboard/page.tsx | Import removed |
 
-## Проверка
-- ✅ TypeScript компилируется
-- ✅ Нет orphan references
-- ✅ Git коммит создан
+## Verification
+- ✅ TypeScript compiles
+- ✅ No orphan references
+- ✅ Git commit created
 
-## Откат
-Если что-то пошло не так:
+## Rollback
+If something went wrong:
 \`\`\`bash
 git checkout main
 git branch -D cleanup/{feature_name}

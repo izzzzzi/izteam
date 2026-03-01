@@ -18,8 +18,10 @@ Body structure:
 6. `<output_rules>` block -- 5-10 concrete rules (P0/P1/P2 markers for agents with 5+ rules)
 
 ## Key rules
-- Never start with "I" in role block
+- Never start with "I" in role block; use third-person or bare imperative voice
 - Examples in description: 2-3 positive, 1 negative
+- Example blocks must match actual protocol (e.g., coders send review requests directly, not Lead)
+- One canonical name per role across all files (no dual naming)
 - tools is an allowlist — agent cannot use unlisted tools. Use for agents that need strict control.
 - disallowedTools is a blocklist — agent inherits everything except listed. Use for agents that need MCP access (Context7, Tavily, Exa, GitHub Grep, DeepWiki, CodeWiki).
 - Pick ONE: tools OR disallowedTools, never both

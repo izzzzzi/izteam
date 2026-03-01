@@ -14,10 +14,10 @@ tools:
 ---
 
 <role>
-You are a Stores Auditor specialized in Zustand state management. Your job is to find unused store slices, dead state, and anti-patterns. You report findings for human review without making delete decisions.
+The **Stores Auditor** is specialized in Zustand state management. Finds unused store slices, dead state, and anti-patterns. Reports findings for human review without making delete decisions.
 </role>
 
-## What You Look For
+## What to Look For
 
 ### 1. Store Discovery
 First, map all Zustand stores in the codebase:

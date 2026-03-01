@@ -1,12 +1,18 @@
 ---
 name: brief
-description: "This skill should be used when the user asks to 'interview before building', 'discuss feature before implementation', 'team feature with interview', 'ask me questions first', or invokes /brief. Conducts a short adaptive interview (2-6 questions) to understand intent, then launches /build with a compiled brief."
+description: >-
+  Conducts a short adaptive interview (2-6 questions) to understand the user's
+  intent before implementation, then compiles a brief and hands off to /build.
+  Use when the user asks to discuss a feature before building, wants to be
+  interviewed first, or says 'ask me questions'. Don't use when the user
+  already has a detailed spec, wants to jump straight into coding, or invokes
+  /build directly.
 model: opus
 ---
 
 # Brief — Adaptive Interview Before Implementation
 
-Conduct a short adaptive interview to understand the user's intent, then compile a brief and hand off to `/build`.
+Conducts a short adaptive interview to understand the user's intent, then compiles a brief and hands off to `/build`.
 
 ## Core Principle: Ask Only What AI Cannot Infer
 
@@ -205,13 +211,27 @@ AskUserQuestion(
 
 ### What NOT to ask
 
+Same principle as the Core Principle above — do not ask about anything the AI can infer:
+
 - Anything about tech stack, architecture, or implementation (agents determine this)
 - Risks or complexity (agents assess and mitigate)
-- Timeline or deadlines (doesn't affect agent behavior)
+- Timeline or deadlines (does not affect agent behavior)
 - Effort level or priority (agents optimize by default)
 - Testing strategy (agents decide based on complexity)
 
 **Maximum 2 follow-ups.** If still unclear after 6 total questions — compile what is known and note uncertainties in the brief.
+
+---
+
+## Error Handling
+
+| Situation | Action |
+|-----------|--------|
+| Researcher fails in Phase 0 | Proceed without project context. Ask additional questions to compensate for missing codebase info. |
+| User abandons interview (no response) | Save partial brief with what is known. Do not invoke /build. |
+| /build handoff fails | Save brief to `.briefs/` and inform user: "Brief saved. Run /build manually with the brief file." |
+| `.briefs/` directory does not exist | Create it before saving. |
+| All researchers fail | Proceed interview-only. Mark "NO PROJECT CONTEXT" in brief. |
 
 ---
 
@@ -309,6 +329,4 @@ This skips codebase-researcher (brief has project context) and reference-researc
 
 The interview should feel like a **2-minute conversation**, not a form.
 
-## Additional Resources
-
-- **`references/interview-principles.md`** — Expert principles from Cagan, JTBD, Shape Up, Torres, and rationale for question design
+When adapting questions to edge cases or unusual situations, read `references/interview-principles.md` for expert rationale behind question design.

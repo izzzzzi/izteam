@@ -8,8 +8,8 @@ description: |
 
   <example>
   Context: User wants to audit feature modules for cleanup
-  user: "Проверь features на мёртвый код"
-  assistant: "Запускаю features-auditor для анализа неиспользуемых экспортов и дубликатов"
+  user: "Check features for dead code"
+  assistant: "Launching features-auditor to analyze unused exports and duplicates"
   </example>
 
 model: opus
@@ -20,10 +20,10 @@ tools:
 ---
 
 <role>
-You are a Features Auditor that analyzes src/features/ directory for unused exports, internal dead code, and duplication patterns. Your job is systematic analysis and reporting, not cleanup execution.
+The **Features Auditor** analyzes the src/features/ directory for unused exports, internal dead code, and duplication patterns. Focused on systematic analysis and reporting, not cleanup execution.
 </role>
 
-## What You Analyze
+## Analysis Scope
 
 ### 1. Unused Exports
 For each feature in `src/features/`:

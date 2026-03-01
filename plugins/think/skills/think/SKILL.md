@@ -1,13 +1,19 @@
 ---
 name: think
-description: Deep structured thinking — breakdown, parallel expert analysis, summary with recommendations
+description: >-
+  Performs deep structured thinking by breaking a task into aspects, dispatching
+  parallel expert analysts, and producing a unified design document with
+  recommendations. Use when the user wants to think through a complex problem,
+  plan an architecture, or analyze trade-offs before implementing. Don't use
+  for implementation, quick questions, expert debates (use /arena), or simple
+  tasks that don't need multi-aspect analysis.
 argument-hint: "<task or idea to think through>"
 model: opus
 ---
 
 # Structured Thinking
 
-You help think through a task before implementation. Work in three stages.
+The skill helps think through a task before implementation, working in three stages.
 
 ## Stage 1: Task Breakdown
 
@@ -48,22 +54,7 @@ Usually 5-10 aspects. No more than 15.
 
 ### Expert Table
 
-| Area                   | Expert           | Principles                                                     |
-| ---------------------- | ---------------- | -------------------------------------------------------------- |
-| React/State            | Dan Abramov      | single responsibility, lift state only when needed, colocation |
-| TypeScript types       | Matt Pocock      | infer over explicit, branded types, type narrowing             |
-| Testing                | Kent C. Dodds    | test behavior not implementation, avoid test IDs, colocation   |
-| Refactoring            | Martin Fowler    | small steps, preserve behavior, extract till you drop          |
-| API design             | Theo Browne      | type-safe contracts, fail fast, explicit errors                |
-| Database               | Markus Winand    | index-first thinking, avoid N+1, explain analyze               |
-| Distributed systems    | Martin Kleppmann | eventual consistency, idempotency, partition tolerance         |
-| Architecture           | Sam Newman       | bounded context, single responsibility, loose coupling         |
-| Security               | Troy Hunt        | defense in depth, least privilege, validate all inputs         |
-| DevOps/K8s             | Kelsey Hightower | declarative config, immutable infrastructure, GitOps           |
-| UX/Product             | Nir Eyal         | trigger → action → variable reward → investment                |
-| Gamification           | Yu-kai Chou      | core drives, white hat vs black hat motivation                 |
-
-For other areas — find appropriate specialists yourself.
+The full expert table with domains, names, and principles is defined in the `think:expert` agent definition. For other areas — find appropriate specialists.
 
 ## Stage 2: Project Study
 
@@ -73,11 +64,33 @@ After breakdown, tell the user:
 
 Then launch **in parallel** `think:expert` agents — one per aspect:
 
+**Dispatch decision tree:**
+
+```
+Aspects identified?
+├── 0 aspects → report to user: task is too simple for multi-aspect analysis
+├── 1-2 aspects → launch experts, but warn: "Few aspects — consider if /think is needed"
+├── 3-15 aspects → launch all in parallel (standard path)
+└── >15 aspects → group related aspects (max 15 agents), note groupings to user
+```
+
+**Partial returns:** If fewer than half the experts return, compile available results with a warning. If none return, report failure.
+
 ```
 Task(think:expert): "Aspect: [aspect name]. Task context: [brief context]. Study the project and propose solution options."
 ```
 
 **IMPORTANT:** Launch all agents in ONE message in parallel.
+
+## Error Handling
+
+| Situation | Action |
+|-----------|--------|
+| Expert agent fails or returns empty | Compile partial results from successful experts. Note which aspects were not analyzed. |
+| Fewer than half the experts return | Compile available results with a warning: "Partial analysis — N of M aspects covered." |
+| All experts fail | Report failure to user. Suggest retrying with fewer aspects or checking tool availability. |
+| `docs/plans/` directory does not exist | Create it before saving. |
+| Save fails | Output the document directly to the user instead of saving to file. |
 
 ## Stage 3: Summary Document
 

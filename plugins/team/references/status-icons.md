@@ -1,41 +1,41 @@
-# Status Icons — единый визуальный язык команды
+# Status Icons — Unified Visual Language for the Team
 
-> Все агенты команды используют эти emoji-константы для статусных сообщений, activeForm и tree-output. Единообразие повышает читаемость и позволяет быстро парсить состояние команды.
+> All team agents use these emoji constants for status messages, activeForm, and tree output. Uniformity improves readability and enables quick parsing of team state.
 
-## Состояния агента
+## Agent States
 
-| Icon | Состояние | Когда использовать |
-|------|-----------|-------------------|
-| 🔍 | Исследование | Поиск файлов, Glob/Grep, чтение кода |
-| 🔨 | Реализация | Написание/редактирование кода |
-| 📝 | Ревью | Проверка чужого кода |
-| ⏳ | Ожидание | Ожидание ответа от другого агента |
-| 🚀 | Старт | Claim задачи, начало работы |
-| ✅ | Готово | Задача/проверка завершена |
-| ❌ | Блокер | STUCK, IMPOSSIBLE_WAIT, ошибка |
-| 🔄 | Повтор | Retry, повторная проверка, fix после review |
-| 💬 | Эскалация | Вопрос Lead/Tech Lead, ESCALATION |
-| 😴 | Idle | Агент спит, ждёт задачу |
-| 👁 | Мониторинг | Supervisor следит за командой |
+| Icon | State | When to Use |
+|------|-------|-------------|
+| 🔍 | Research | File search, Glob/Grep, reading code |
+| 🔨 | Implementation | Writing/editing code |
+| 📝 | Review | Reviewing another agent's code |
+| ⏳ | Waiting | Waiting for a response from another agent |
+| 🚀 | Start | Claiming a task, beginning work |
+| ✅ | Done | Task/review completed |
+| ❌ | Blocker | STUCK, IMPOSSIBLE_WAIT, error |
+| 🔄 | Retry | Retry, re-check, fix after review |
+| 💬 | Escalation | Question to Lead/Tech Lead, ESCALATION |
+| 😴 | Idle | Agent is sleeping, waiting for a task |
+| 👁 | Monitoring | Supervisor is watching the team |
 
-## Роли (prefix в review)
+## Roles (prefix in review)
 
-| Icon | Роль |
+| Icon | Role |
 |------|------|
 | 🔒 | Security Review |
 | 🧠 | Logic Review |
 | 📐 | Quality Review |
 | 🔍 | Unified Review |
 
-## Формат статусных сообщений
+## Status Message Format
 
-Каждый агент при смене состояния пишет:
+Each agent writes on state change:
 
 ```
-{icon} [{ROLE}] {действие} — {контекст}
+{icon} [{ROLE}] {action} — {context}
 ```
 
-Примеры:
+Examples:
 ```
 🚀 [CODER-1] Claiming task #3 «Add settings endpoint»
 🔍 [CODER-1] Reading gold standards — src/server/routers/profile.ts
@@ -54,9 +54,9 @@
 👁 [SUPERVISOR] All healthy — 2 coders active, 3 reviewers idle
 ```
 
-## activeForm для TaskCreate/TaskUpdate
+## activeForm for TaskCreate/TaskUpdate
 
-Используй emoji из этой таблицы для `activeForm` спиннера:
+Use emoji from this table for the `activeForm` spinner:
 
 ```
 TaskUpdate(taskId="3", status="in_progress", activeForm="🔨 Implementing settings endpoint")
@@ -64,9 +64,9 @@ TaskUpdate(taskId="3", activeForm="⏳ Waiting for review")
 TaskUpdate(taskId="3", status="completed", activeForm="✅ Done")
 ```
 
-## Tree-output для Lead (Monitor Mode)
+## Tree Output for Lead (Monitor Mode)
 
-Lead периодически выводит дерево состояния команды:
+Lead periodically outputs team status tree:
 
 ```
 📋 TEAM STATUS

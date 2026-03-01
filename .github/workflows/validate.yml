@@ -78,3 +78,6 @@ jobs:
             fi
             echo "✅ $f has all required fields"
           done
+
+      - name: Validate skill and agent definitions
+        run: ./scripts/validate-skills.sh

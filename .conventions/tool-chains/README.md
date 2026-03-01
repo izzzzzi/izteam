@@ -18,6 +18,14 @@ format: pnpm biome format --write
 - **Coders**: use commands from `commands.yml` for self-checks (Step 5)
 - **Phase 3 verification**: Lead runs build + test from `commands.yml`
 
+## Validation
+
+```yaml
+validate-skills: ./scripts/validate-skills.sh
+```
+
+Validates all SKILL.md files against frontmatter schema, line count limits, and description requirements. Run in CI and before merging plugin changes.
+
 ## Rules
 
 - One `commands.yml` per project root

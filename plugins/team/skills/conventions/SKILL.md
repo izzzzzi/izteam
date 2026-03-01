@@ -1,6 +1,12 @@
 ---
 name: conventions
-description: "Analyze codebase and create/update .conventions/ directory with gold standards, anti-patterns, and checks"
+description: >-
+  Analyzes the codebase and creates or updates a .conventions/ directory with
+  gold standards, anti-patterns, naming rules, and architectural decisions. Use
+  when the user wants to extract project conventions, document coding
+  standards, or bootstrap a conventions directory. Don't use for linting
+  individual files, fixing code style, generating documentation, or creating
+  project templates.
 allowed-tools:
   - Read
   - Grep
@@ -15,7 +21,7 @@ model: opus
 
 # Conventions — Analyze Codebase & Build Convention Files
 
-You analyze the codebase and create or update the `.conventions/` directory. This directory is the **single source of truth** for project patterns — it encodes taste once, so every agent (and human) follows the same conventions.
+Analyzes the codebase and creates or updates the `.conventions/` directory. This directory is the **single source of truth** for project patterns — it encodes taste once, so every agent (and human) follows the same conventions.
 
 ## Target Structure
 
@@ -51,7 +57,7 @@ Spawn 3 researchers in parallel to scan the codebase:
 
 ```
 Task(
-  subagent_type="Explore",
+  subagent_type="team:codebase-researcher",
   prompt="Analyze this project's STRUCTURE and STACK.
   Return: framework, language, package manager, DB, key libraries,
   directory structure, where API routes/pages/components live.
@@ -59,7 +65,7 @@ Task(
 )
 
 Task(
-  subagent_type="Explore",
+  subagent_type="team:codebase-researcher",
   prompt="Find the 5-7 BEST example files in this codebase — files that represent
   'how things are done here'. Look for:
   - A well-structured UI component
@@ -73,7 +79,7 @@ Task(
 )
 
 Task(
-  subagent_type="Explore",
+  subagent_type="team:codebase-researcher",
   prompt="Analyze NAMING CONVENTIONS and IMPORT PATTERNS in this codebase.
   Check:
   - File naming: kebab-case? camelCase? PascalCase? (check src/ files)
@@ -196,6 +202,16 @@ Project profile:
 Total: N files created, M files updated
 ══════════════════════════════════════════════════
 ```
+
+## Error Handling
+
+| Situation | Action |
+|-----------|--------|
+| Researcher agent fails or returns empty | Re-dispatch with narrower scope (specific directory). If still fails, proceed with Glob/Grep output only. |
+| Command verification fails (build/test/lint) | Skip unverifiable commands. Note in output: "Command not verified: {cmd}." |
+| Multiple researchers fail | Proceed with available data. Mark "DEGRADED RESEARCH" in output. |
+| Write fails for .conventions/ files | Output file contents directly to the user for manual creation. |
+| Project has no package.json or recognizable build system | Skip tool-chains/commands.yml creation. Note: "No build system detected." |
 
 ## Rules
 

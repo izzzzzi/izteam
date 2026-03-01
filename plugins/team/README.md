@@ -99,7 +99,7 @@ Lead runs quick checks (naming, imports, schema conventions) before human-like r
 
 - **SIMPLE:** one Unified Reviewer.
 - **MEDIUM / COMPLEX:** Security, Logic, and Quality reviewers in parallel.
-- **COMPLEX:** extra deep-analysis agents for sensitive areas.
+- **COMPLEX:** deeper review scrutiny for sensitive areas.
 
 **Step 8 — Architectural Approval**
 
@@ -138,7 +138,7 @@ Analyzes the codebase and creates/updates `.conventions/` with:
 |-------|-----------|-----------|---------------|---------------------|
 | **SIMPLE** | 4 agents | 1 unified | Skipped | Skipped |
 | **MEDIUM** | 5-7 agents | 3 specialized | Yes | Yes |
-| **COMPLEX** | 6-9+ agents | 3 specialized + deep analysis | Full + risk testers | Yes + user informed on key decisions |
+| **COMPLEX** | 6-9+ agents | 3 specialized + deeper scrutiny | Full + risk testers | Yes + user informed on key decisions |
 
 ## Team Roles
 

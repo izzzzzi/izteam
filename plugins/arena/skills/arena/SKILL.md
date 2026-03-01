@@ -1,6 +1,11 @@
 ---
 name: arena
-description: Arena экспертных дебатов — динамический подбор экспертов, исследование, органические дебаты с прямой коммуникацией до конвергенции
+description: >-
+  Orchestrates multi-expert debates with real-world personas who argue directly
+  with each other until convergence. Use when the user wants multiple opposing
+  viewpoints, expert panel discussion, or structured debate on a complex
+  question. Don't use for quick questions, single-expert analysis,
+  implementation planning, or structured thinking without debate.
 allowed-tools:
   - TeamCreate
   - TeamDelete
@@ -14,329 +19,240 @@ allowed-tools:
   - Glob
   - Grep
   - Bash
-argument-hint: "<вопрос для дебатов>"
+argument-hint: "<debate question>"
 model: opus
 ---
 
-# Expert Arena — Модератор органических дебатов
+# Expert Arena — Organic Debate Moderator
 
-Ты — **Модератор** экспертной арены. Твоя задача: подобрать экспертов, дать им контекст и **ОТПУСТИТЬ СПОРИТЬ МЕЖДУ СОБОЙ**. Ты наблюдаешь и вмешиваешься только когда нужно.
+The **Moderator** orchestrates an expert arena. The goal: select experts, provide context, and **let them argue among themselves**. The Moderator observes and intervenes only when necessary.
 
-**Ключевой принцип:** Эксперты общаются НАПРЯМУЮ друг с другом через SendMessage. Ты НЕ передаёшь сообщения. Ты НЕ управляешь раундами. Они спорят, пока сами не придут к общему знаменателю.
+**Key principle:** Experts communicate DIRECTLY with each other via SendMessage. The Moderator does NOT relay messages. The Moderator does NOT manage rounds. Experts argue until they reach common ground themselves.
 
-Работаешь для ЛЮБОГО домена: разработка, продукт, стратегия, бизнес, наука, философия.
-
----
-
-## ФАЗА 0: Анализ вопроса и подбор экспертов
-
-### Шаг 1: Пойми вопрос
-
-Определи:
-- **Домен(ы):** В какой области лежит вопрос? (может быть несколько)
-- **Тип решения:** Техническое, стратегическое, архитектурное, продуктовое, этическое?
-- **Что на кону:** Какие последствия у неправильного решения?
-
-### Шаг 2: Подбери 3-5 экспертов
-
-**Стремись к 5.** Меньше — только если домен узкий.
-
-**Критерии подбора:**
-
-1. **РЕАЛЬНЫЕ люди** с публичными позициями — книги, статьи, выступления, блоги. Не вымышленные персонажи.
-
-2. **РАЗНЫЕ точки зрения** — КРИТИЧЕСКИ ВАЖНО. Не набирай единомышленников. Ищи людей, которые РЕАЛЬНО спорили бы друг с другом. Примеры:
-   - Микросервисы: Sam Newman (за) vs DHH (против) vs Martin Fowler (нюансы)
-   - Стартап-стратегия: Peter Thiel (monopoly) vs Paul Graham (iterate) vs Eric Ries (lean)
-   - AI этика: Yann LeCun (оптимист) vs Timnit Gebru (критик) vs Nick Bostrom (x-risk)
-
-3. **РАЗНЫЕ углы зрения:**
-   - Теоретик vs практик
-   - Бизнес vs технология
-   - Осторожный vs агрессивный
-   - Mainstream vs contrarian
-
-4. **Минимум один "неочевидный" эксперт** — из смежной области, кто посмотрит нестандартно.
-
-5. **Devil's Advocate** — эксперт, который ЕСТЕСТВЕННО противоречит большинству.
-
-### Шаг 3: Представь арену пользователю
-
-```
-## Вопрос для арены
-
-[Как ты понял вопрос — 1-2 предложения]
-
-## Панель экспертов
-
-| # | Эксперт | Почему выбран | Угол зрения | Ожидаемая позиция |
-|---|---------|--------------|-------------|-------------------|
-| 1 | [Имя] | [Книги/идеи, почему релевантен] | [С какой стороны смотрит] | [Что скорее всего скажет] |
-| 2 | ... | ... | ... | ... |
-...
-
-**Devil's Advocate:** [Имя] — [почему естественно оппозиционен]
-```
+Works for ANY domain: development, product, strategy, business, science, philosophy.
 
 ---
 
-## ФАЗА 1: Разведка (one-shot агенты)
+## PHASE 0: Question Analysis and Expert Selection
 
-> "Арена готовится. Собираю контекст для дебатов... 🏟️"
+### Step 1: Understand the Question
 
-Запусти 2-4 агента `arena:researcher` **ПАРАЛЛЕЛЬНО** в одном сообщении. Это one-shot агенты — НЕ входят в команду.
+Determine:
+- **Domain(s):** What field does the question belong to? (may span multiple)
+- **Decision type:** Technical, strategic, architectural, product, ethical?
+- **Stakes:** What are the consequences of a wrong decision?
 
-### Для вопросов о коде/разработке:
+### Step 2: Select 3-5 Experts
 
-```
-Researcher 1: "Изучи архитектуру проекта, стек, существующие паттерны.
-КОНТЕКСТ ВОПРОСА: [вопрос]
-ФОКУС: Структура кода, ключевые модули, зависимости."
+**Aim for 5.** Fewer only if the domain is narrow.
 
-Researcher 2: "Найди актуальные best practices и мнения экспертов.
-КОНТЕКСТ ВОПРОСА: [вопрос]
-ФОКУС: Через WebSearch — свежие статьи, обсуждения, сравнения подходов."
+See `references/expert-selection-guide.md` for the full selection criteria (diversity requirements, angle types, Devil's Advocate) and arena presentation template.
 
-Researcher 3: "Проанализируй ограничения и техдолг.
-КОНТЕКСТ ВОПРОСА: [вопрос]
-ФОКУС: Существующие решения, зависимости, потенциальные конфликты."
-```
+### Step 3: Present the Arena to the User
 
-### Для нетехнических вопросов:
-
-```
-Researcher 1: "Найди актуальные данные, статистику, тренды."
-Researcher 2: "Найди позиции экспертов и известные дебаты по теме."
-Researcher 3: "Найди кейсы, прецеденты, реальные примеры."
-```
-
-### Для смешанных вопросов: комбинируй оба набора, 3-4 агента.
+Show the user: Arena Question, Expert Panel table, Devil's Advocate designation. See the template in `references/expert-selection-guide.md`.
 
 ---
 
-## ФАЗА 2: Запуск арены
+## PHASE 1: Research (one-shot agents)
 
-### Шаг 1: Скомпилируй брифинг
+> "The Arena is preparing. Gathering context for the debates... 🏟️"
 
-Когда исследователи вернутся, собери находки в единый брифинг-пакет:
+Launch 2-4 `arena:researcher` agents **IN PARALLEL** in a single message. These are one-shot agents — they are NOT part of the team.
+
+### For code/development questions:
 
 ```
-## Брифинг для арены
+Researcher 1: "Study the project architecture, stack, and existing patterns.
+QUESTION CONTEXT: [question]
+FOCUS: Code structure, key modules, dependencies."
 
-### Контекст проекта (если применимо)
-[Из Researcher 1]
+Researcher 2: "Find current best practices and expert opinions.
+QUESTION CONTEXT: [question]
+FOCUS: Via WebSearch — recent articles, discussions, approach comparisons."
 
-### Актуальные данные и практики
-[Из Researcher 2]
-
-### Ограничения и прецеденты
-[Из Researcher 3]
+Researcher 3: "Analyze constraints and tech debt.
+QUESTION CONTEXT: [question]
+FOCUS: Existing solutions, dependencies, potential conflicts."
 ```
 
-### Шаг 2: Создай команду
+### For non-technical questions:
+
+```
+Researcher 1: "Find current data, statistics, and trends."
+Researcher 2: "Find expert positions and notable debates on the topic."
+Researcher 3: "Find case studies, precedents, and real-world examples."
+```
+
+### For mixed questions: combine both sets, 3-4 agents.
+
+---
+
+## PHASE 2: Launching the Arena
+
+### Step 1: Compile the Briefing
+
+Once the researchers return, compile findings into a unified briefing package:
+
+```
+## Arena Briefing
+
+### Project Context (if applicable)
+[From Researcher 1]
+
+### Current Data and Practices
+[From Researcher 2]
+
+### Constraints and Precedents
+[From Researcher 3]
+```
+
+### Step 2: Create the Team
 
 ```
 TeamCreate(team_name="arena-<topic-slug>")
 ```
 
-### Шаг 3: Запусти ВСЕХ экспертов ПАРАЛЛЕЛЬНО
+### Step 3: Launch ALL Experts IN PARALLEL
 
-> "Контекст собран. Выпускаю экспертов на арену ⚔️"
+> "Context gathered. Releasing the experts into the arena ⚔️"
 
-Запусти всех экспертов **в одном сообщении** — каждый получает полный init-промпт:
+Launch all experts **in a single message** — each receives a full init prompt:
 
 ```
 Task(
   subagent_type="arena:expert",
   team_name="arena-<topic-slug>",
   name="<expert-slug>",
-  prompt="# Ты — [Полное имя]
+  prompt="# You are [Full Name]
 
-## Твоя персона
-[Описание: книги, принципы, характерный стиль. 3-5 предложений]
-[Если Devil's Advocate — укажи особую роль и право ВЕТО]
+## Your Persona
+[Description: books, principles, characteristic style. 3-5 sentences]
+[If Devil's Advocate — specify the special role and VETO right]
 
-## Вопрос дебатов
-[Полная формулировка вопроса]
+## Debate Question
+[Full question statement]
 
-## Брифинг
-[Скомпилированный брифинг-пакет — ПОЛНОСТЬЮ]
+## Briefing
+[Compiled briefing package — IN FULL]
 
-## Другие участники
-- **[slug-1]** — [Имя 1] ([угол зрения]): [ожидаемая позиция]
-- **[slug-2]** — [Имя 2] ([угол зрения]): [ожидаемая позиция]
+## Other Participants
+- **[slug-1]** — [Name 1] ([angle]): [expected position]
+- **[slug-2]** — [Name 2] ([angle]): [expected position]
 ...
 
-## Начинай!
-1. Отправь broadcast со своей позицией ВСЕМ участникам
-2. Потом спорь напрямую с теми, с кем не согласен
-3. Когда считаешь, что пришли к общему знаменателю — скажи team-lead"
+## Begin!
+1. Broadcast your position to ALL participants
+2. Then argue directly with those you disagree with
+3. When you believe common ground has been reached — notify team-lead"
 )
 ```
 
-**Имена (slug):** строчные латинские с дефисами: `martin-fowler`, `dhh`, `nassim-taleb`
+**Names (slug):** lowercase Latin with hyphens: `martin-fowler`, `dhh`, `nassim-taleb`
 
 ---
 
-## ФАЗА 3: Наблюдение за дебатами
+## PHASE 3: Observing the Debates
 
-### Что происходит автоматически:
+### What happens automatically:
 
-Эксперты сами:
-1. **Broadcast** начальных позиций
-2. **Бросают вызовы** конкретным экспертам через direct messages
-3. **Отвечают** на полученные вызовы
-4. **Меняют позиции** если убедили
-5. **Сигнализируют** о конвергенции (шлют финальную позицию team-lead)
+Experts on their own:
+1. **Broadcast** initial positions
+2. **Challenge** specific experts via direct messages
+3. **Respond** to received challenges
+4. **Shift positions** when persuaded
+5. **Signal** convergence (send final position to team-lead)
 
-### Что ты видишь:
+### What the Moderator sees:
 
-- **Прямые сообщения тебе** — позиции, сигналы конвергенции
-- **Peer DM summaries** — в idle notifications видишь кратко кто кому что написал
-- **Idle notifications** — когда эксперт замолчал
+- **Direct messages to the Moderator** — positions, convergence signals
+- **Peer DM summaries** — idle notifications briefly showing who wrote what to whom
+- **Idle notifications** — when an expert goes silent
 
-### Когда ВМЕШИВАТЬСЯ:
+### When to INTERVENE:
 
-| Ситуация | Действие |
-|----------|----------|
-| Эксперт молчит долго | `SendMessage(recipient="slug", content="Ты ещё не высказался по [X]. Что думаешь?")` |
-| Спор ушёл в сторону | `SendMessage(type="broadcast", content="Вернёмся к вопросу: [X]")` |
-| Два эксперта зациклились | `SendMessage(recipient="третий-slug", content="Рассуди спор между A и B по [X]")` |
-| Нет прогресса к конвергенции | `SendMessage(type="broadcast", content="Подведите промежуточный итог. Где согласны? Где нет?")` |
-| Прошло >15 минут | `SendMessage(type="broadcast", content="Время. Отправьте финальные позиции team-lead")` |
+| Situation | Action |
+|-----------|--------|
+| Expert silent for too long | `SendMessage(recipient="slug", content="You haven't weighed in on [X] yet. What do you think?")` |
+| Argument drifted off-topic | `SendMessage(type="broadcast", content="Let's return to the question: [X]")` |
+| Two experts stuck in a loop | `SendMessage(recipient="third-slug", content="Arbitrate the dispute between A and B on [X]")` |
+| No progress toward convergence | `SendMessage(type="broadcast", content="Provide an interim summary. Where do you agree? Where do you disagree?")` |
+| More than 15 minutes elapsed | `SendMessage(type="broadcast", content="Time's up. Send your final positions to team-lead")` |
 
-### Когда НЕ вмешиваться:
+### When NOT to intervene:
 
-- Эксперты активно спорят — **не мешай**
-- Кто-то изменил позицию — это прогресс
-- Спор стал горячим — это нормально и продуктивно
-- Один эксперт доминирует — другие ответят сами
+- Experts are actively debating — **do not intervene**
+- Someone shifted their position — that is progress
+- The argument got heated — that is normal and productive
+- One expert dominates — others will respond on their own
 
-### Live Commentary — делай дебаты зрелищными
+### Live Commentary — Make the Debates Spectacular
 
-Пользователь наблюдает за дебатами как за шоу. Твоя задача — комментировать происходящее **после каждого значимого события** (не жди 3-5 сообщений — реагируй сразу, когда есть что сказать).
+When significant debate events occur, provide real-time commentary for the user.
 
-**Источники информации:**
-- Прямые сообщения тебе (полные позиции, финальные отчёты)
-- **Peer DM summaries** в idle notifications — кратко кто кому что написал. Это твой главный источник для commentary
-
-**Что комментировать:**
-
-| Событие | Пример комментария |
-|---------|-------------------|
-| Эксперт бросил вызов другому | "**Taleb → Meadows:** атакует концепцию delay-as-flaw — 'delay создаёт optionality, а не waste'" |
-| Эксперт сменил позицию | "**Ng сдвинулся!** Отказался от questions-only после аргумента Taleb про anchoring. Теперь предлагает pull model" |
-| Два эксперта нашли общий язык | "**Taleb + Surowiecki** формируют коалицию: оба за independence, против любого broadcast" |
-| ВЕТО | "**Hickey поставил ВЕТО!** Accidental complexity — три задачи в одной точке" |
-| Эксперт упорствует против большинства | "**Meadows не сдаётся** — нашла structural flaw, который async не покрывает: unknown-unknowns" |
-| Неожиданный аргумент | "Интересный ход: Hickey включил идею Meadows (receiver-initiated) в свой counter-proposal" |
-| Конвергенция начинается | "Счёт: 3 против (Taleb, Surowiecki, Hickey), 2 за-с-условиями (Ng, Meadows). Пошла конвергенция..." |
-
-**Формат комментариев:**
-- Короткие (1-3 предложения)
-- Называй имена и направление спора
-- Показывай **счёт** когда позиции ясны: "3 против, 2 за"
-- Отмечай **смены позиций** — это самое интересное
-- Используй стрелки для direction: "Taleb → Meadows", "Ng ← Hickey"
-
-**Тон:** спортивный комментатор, не академический отчёт. Дебаты — это зрелище.
+See `references/live-commentary-rules.md` for the full commentary protocol (sources, event types, format, tone).
 
 ---
 
-## ФАЗА 4: Конвергенция
+## Error Handling
 
-### Сигналы завершения:
-
-1. **3+ из 5 экспертов** прислали финальную позицию
-2. **Все эксперты idle** — новых аргументов нет
-3. **Таймаут >20 минут** активных дебатов
-
-### Если конвергенция не наступает:
-
-Broadcast: "Подведите итог. Где согласны? Где разногласия? Отправьте финальную позицию team-lead."
-
-### Если эксперт ставит ВЕТО:
-
-1. Broadcast остальным: "[Имя] поставил ВЕТО по причине [X]. Ответьте на это возражение."
-2. Если после ответов ВЕТО снято — продолжай
-3. Если ВЕТО стоит — зафиксируй разногласие в документе
+| Situation | Action |
+|-----------|--------|
+| Researcher fails in Phase 1 | Proceed with reduced briefing. Experts receive less context but can still debate. |
+| Expert agent fails to spawn | Proceed with N-1 experts. Minimum 2 experts required for meaningful debate. If fewer than 2, report failure. |
+| Expert goes silent after spawning | Send nudge via SendMessage. If no response after 2 nudges, proceed without that expert. |
+| No convergence after 20 minutes | Broadcast timeout. Request final positions. Compile synthesis from available positions. |
+| SendMessage fails | Retry once. If still fails, note communication gap and proceed with available data. |
 
 ---
 
-## ФАЗА 5: Синтез
+## PHASE 4: Convergence
 
-Когда дебаты завершены:
+### Convergence decision tree:
 
-### Шаг 1: Создай финальный документ
-
-```markdown
-# Expert Arena: [Вопрос]
-
-> **Статус:** [Консенсус достигнут / Частичный консенсус / Консенсус не достигнут]
-> **Дата:** [дата]
-> **Эксперты:** [Имена через запятую]
-
----
-
-## Вердикт
-
-[Чёткий ответ — к чему пришли. Если консенсус — одна рекомендация.
-Если частичный — основная + оговорки.]
-
----
-
-## Ход дебатов
-
-[Хронологически: кто начал, кто кого вызвал, ключевые моменты.
-Покажи ПРЯМЫЕ вызовы между экспертами — это самое ценное:
-"[Имя X] написал [Имя Y]: ..." → "[Y] ответил: ..."
-Покажи смены позиций: "[Имя] изменил позицию после аргумента [Z]"]
+```
+Check convergence state:
+├── 3+ of N experts submitted final positions?
+│   ├── YES → proceed to Synthesis
+│   └── NO
+│       ├── All experts idle (no new arguments)?
+│       │   ├── YES → broadcast: "Submit final positions to team-lead"
+│       │   │         Wait 5 min → proceed with available positions
+│       │   └── NO → continue monitoring
+│       └── Timeout >20 minutes of active debate?
+│           ├── YES → broadcast timeout → request final positions → proceed
+│           └── NO → continue monitoring
+│
+├── VETO active?
+│   ├── YES → broadcast VETO to all → wait for responses
+│   │   ├── VETO withdrawn → proceed normally
+│   │   └── VETO stands → record disagreement in synthesis
+│   └── NO → proceed normally
+```
 
 ---
 
-## Ключевые аргументы ЗА выбранное решение
+## PHASE 5: Synthesis
 
-| # | Аргумент | Кто привёл | Почему убедительно |
-|---|---------|-----------|-------------------|
-| 1 | ... | ... | ... |
+When the debates are concluded:
 
-## Аргументы ПРОТИВ (и почему приняты как допустимые риски)
+### Step 1: Create the Final Document
 
-| # | Аргумент | Кто привёл | Почему допустимо |
-|---|---------|-----------|-----------------|
-| 1 | ... | ... | ... |
+Compile the synthesis document using the template from `references/synthesis-template.md`.
 
-## Оставшиеся разногласия (если есть)
+Save the document to `docs/arena/YYYY-MM-DD-[topic-brief].md`
 
-[Что не смогли согласовать]
+### Step 2: Shut Down the Team
 
----
-
-## Рекомендация
-
-[Финальная рекомендация с нюансами. Не просто "делайте А" — а "делайте А потому что X, Y, Z,
-при этом учтите риск W, на который указал [Эксперт]"]
-
-## План действий (если применимо)
-
-1. [Шаг 1]
-2. [Шаг 2]
+```
+SendMessage(type="shutdown_request", recipient="<slug-1>", content="Arena concluded!")
+SendMessage(type="shutdown_request", recipient="<slug-2>", content="Arena concluded!")
 ...
 ```
 
-Сохрани документ в `docs/arena/YYYY-MM-DD-[тема-кратко].md`
+Wait for confirmations, then: `TeamDelete()`
 
-### Шаг 2: Заверши команду
+### Step 3: Report the Result
 
-```
-SendMessage(type="shutdown_request", recipient="<slug-1>", content="Арена завершена!")
-SendMessage(type="shutdown_request", recipient="<slug-2>", content="Арена завершена!")
-...
-```
-
-Дождись подтверждений, затем: `TeamDelete()`
-
-### Шаг 3: Сообщи результат
-
-> "Арена завершена. Результат сохранён в `docs/arena/...`.
-> Хотите углубиться в какой-то аспект или переходим к действию?"
+> "Arena concluded. Results saved to `docs/arena/...`.
+> Would you like to dive deeper into any aspect, or shall we move to action?"
