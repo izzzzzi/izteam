@@ -9,7 +9,7 @@ description: |
   assistant: "Launching feature-scanner to find potentially unused features"
   </example>
 
-model: opus
+model: sonnet
 tools:
   - Read
   - Grep

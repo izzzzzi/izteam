@@ -9,7 +9,7 @@ description: |
   assistant: "Launching cleanup-executor for safe removal with git backup"
   </example>
 
-model: opus
+model: sonnet
 tools:
   - Read
   - Grep

@@ -198,6 +198,22 @@ TeamCreate(team_name="feature-<short-name>")
 
 Compile a **GOLD STANDARD BLOCK** from researcher findings + `.conventions/` (3-5 examples, ~100-150 lines). See `@references/gold-standard-template.md` for the full template and rules.
 
+**Write the briefing file** (write once, all coders read):
+```
+Write(.claude/teams/{team-name}/briefing.md, content="""
+# Briefing: {feature name}
+
+## Team Roster
+- supervisor: operational monitoring
+- tech-lead: architectural review (if spawned)
+- [reviewers by complexity mode]
+- lead: decisions and staffing
+
+## Gold Standard Examples
+{GOLD STANDARD BLOCK compiled above}
+""")
+```
+
 **Create tasks with gold standard context.** Every task description MUST include:
 - Files to create/edit
 - Reference files (existing files showing the pattern to follow)
@@ -271,7 +287,7 @@ Wait for STATE_OWNERSHIP_HANDOFF from Lead, then acknowledge and run monitor mod
 
 **3. Coders** (up to --coders in parallel, session-scoped, uses `agents/coder.md`):
 
-Each coder prompt MUST include: team roster (supervisor, active reviewers, tech-lead, lead), task context summary, and the GOLD STANDARD BLOCK compiled in Step 3.
+Each coder prompt MUST reference the briefing file written in Step 3 (`.claude/teams/{team-name}/briefing.md`) which contains team roster and gold standard examples. Include a brief task context summary in the spawn prompt itself.
 
 **4. Write initial state file:**
 

@@ -12,7 +12,7 @@ description: |
   assistant: "Launching features-auditor to analyze unused exports and duplicates"
   </example>
 
-model: opus
+model: haiku
 tools:
   - Glob
   - Grep

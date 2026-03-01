@@ -12,7 +12,7 @@ description: |
   assistant: "Launching server-auditor to audit tRPC routers and services"
   </example>
 
-model: opus
+model: haiku
 tools:
   - Glob
   - Grep

@@ -28,9 +28,36 @@ GOLD STANDARD BLOCK (compiled by Lead):
 - Include FULL file content (not summaries) — coders need to see the actual pattern
 - Add notes pointing to specific patterns to match (naming, error handling, imports)
 
-## In Coder Spawn Prompt
+## Briefing File Pattern (write once, read many)
 
-Gold standards go in the coder's spawn prompt (task-specific context):
+Instead of duplicating the GOLD STANDARD BLOCK inline in each coder's spawn prompt (~3000 tokens x N coders), the Lead writes it to a shared briefing file that all coders read:
+
+**Step 1: Lead writes the briefing file** (once, after compiling the block in Step 3):
+
+```
+Write(.claude/teams/{team-name}/briefing.md, content="""
+# Briefing: {feature name}
+
+## Team Roster
+- supervisor: operational monitoring
+- tech-lead: architectural review (if spawned)
+- security-reviewer / logic-reviewer / quality-reviewer (or unified-reviewer for SIMPLE)
+- lead: decisions and staffing
+
+## Gold Standard Examples
+
+--- GOLD STANDARD: [layer] — [file path] ---
+[Full file content]
+
+--- GOLD STANDARD: [layer] — [file path] ---
+[Full file content]
+
+--- CONVENTIONS ---
+[Key rules]
+""")
+```
+
+**Step 2: Coder spawn prompts reference the file** (minimal tokens per coder):
 
 ```
 Task(
@@ -39,17 +66,17 @@ Task(
   name="coder-<N>",
   prompt="You are Coder #{N}. Team: feature-<name>.
 
---- GOLD STANDARD EXAMPLES ---
-{GOLD STANDARD BLOCK compiled by Lead}
---- END GOLD STANDARDS ---
+Read .claude/teams/{team-name}/briefing.md for gold standard examples and team roster.
 
 Claim your first task from the task list and start working."
 )
 ```
 
+This saves ~3000 tokens per additional coder (only 1 write + N reads instead of N inline copies).
+
 ## Task Description First
 
-When providing context to coders, put the task description FIRST, then gold standards:
+When providing context to coders, put the task description FIRST, then the briefing reference:
 
 ```
 prompt="You are Coder #{N}. Team: feature-<name>.
@@ -57,9 +84,7 @@ prompt="You are Coder #{N}. Team: feature-<name>.
 YOUR TASK CONTEXT:
 {Brief summary of what this coder will work on}
 
---- GOLD STANDARD EXAMPLES ---
-{GOLD STANDARD BLOCK}
---- END GOLD STANDARDS ---
+Read .claude/teams/{team-name}/briefing.md for gold standard examples and team roster.
 
 Claim your first task from the task list and start working."
 ```
