@@ -81,3 +81,6 @@ jobs:
 
       - name: Validate skill and agent definitions
         run: ./scripts/validate-skills.sh
+
+      - name: Check MCP config consistency
+        run: ./scripts/sync-mcp.sh --check
