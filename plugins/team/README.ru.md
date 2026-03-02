@@ -30,7 +30,7 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 ## Installation
 
 ```bash
-/plugin marketplace add izzzzzi/izteam
+/plugin marketplace add izzzzzi/izTeam
 /plugin install team@izteam
 ```
 

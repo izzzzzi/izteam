@@ -7,7 +7,7 @@
 ## Installation
 
 ```bash
-/plugin marketplace add izzzzzi/izteam
+/plugin marketplace add izzzzzi/izTeam
 /plugin install think@izteam
 ```
 

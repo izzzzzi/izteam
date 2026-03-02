@@ -7,7 +7,7 @@ Plan complex tasks before coding with structured expert analysis.
 ## Installation
 
 ```bash
-/plugin marketplace add izzzzzi/izteam
+/plugin marketplace add izzzzzi/izTeam
 /plugin install think@izteam
 ```
 

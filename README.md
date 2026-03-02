@@ -6,10 +6,10 @@
 
 **A Claude Code plugin marketplace for AI agent teams, expert debates, deep planning, and interactive code audits**
 
-[![Validate](https://github.com/izzzzzi/izteam/actions/workflows/validate.yml/badge.svg)](https://github.com/izzzzzi/izteam/actions/workflows/validate.yml)
-[![Release](https://github.com/izzzzzi/izteam/actions/workflows/release.yml/badge.svg)](https://github.com/izzzzzi/izteam/actions/workflows/release.yml)
-[![Auto Version](https://github.com/izzzzzi/izteam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izteam/actions/workflows/auto-version.yml)
-[![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izteam)
+[![Validate](https://github.com/izzzzzi/izTeam/actions/workflows/validate.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/validate.yml)
+[![Release](https://github.com/izzzzzi/izTeam/actions/workflows/release.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/release.yml)
+[![Auto Version](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml)
+[![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izTeam)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](LICENSE)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-purple?style=flat&colorA=18181B&colorB=7C3AED)](https://claude.ai/code)
 
@@ -44,7 +44,7 @@ Each plugin adds slash commands, agents, and ready-to-use workflows: from buildi
 ### 1. Add the marketplace
 
 ```bash
-/plugin marketplace add izzzzzi/izteam
+/plugin marketplace add izzzzzi/izTeam
 ```
 
 ### 2. Install plugins
