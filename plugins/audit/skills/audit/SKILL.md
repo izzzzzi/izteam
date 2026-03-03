@@ -11,7 +11,6 @@ allowed-tools:
   - Read
   - Grep
   - Glob
-  - AskUserQuestion
 argument-hint: "[scope: features | server | ui | stores | all]"
 model: opus
 ---

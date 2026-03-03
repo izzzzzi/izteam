@@ -12,7 +12,6 @@ allowed-tools:
   - Read
   - Grep
   - Glob
-  - AskUserQuestion
   - Skill
 model: opus
 ---
