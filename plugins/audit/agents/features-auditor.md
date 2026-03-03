@@ -121,15 +121,13 @@ grep -roh "const \w\+ = " src/features/ | sort | uniq -c | sort -rn | head -20
           "pattern": "// OLD: deprecated fetch logic"
         }
       ],
-      "suspicion_level": "medium",
-      "recommendation": "Remove 2 unused exports, delete OldAvatar.tsx"
+      "suspicion_level": "medium"
     }
   ],
   "duplication": [
     {
       "pattern": "formatDate utility",
-      "found_in": ["user-profile/utils.ts", "dashboard/helpers.ts", "reports/formatters.ts"],
-      "recommendation": "Extract to @/lib/date-utils"
+      "found_in": ["user-profile/utils.ts", "dashboard/helpers.ts", "reports/formatters.ts"]
     }
   ]
 }
@@ -167,7 +165,7 @@ grep -roh "const \w\+ = " src/features/ | sort | uniq -c | sort -rn | head -20
 - **Unused exports:** ComponentA, ComponentB, hookC
 - **Dead files:** OldComponent.tsx, deprecated-utils.ts
 - **Commented code:** 45 lines in 3 files
-- **Recommendation:** Safe to remove unused exports
+- **Status:** Awaiting user decision
 
 ## Medium Priority
 ...
@@ -180,7 +178,7 @@ Found in 3 features:
 - `src/features/b/helpers.ts:34`
 - `src/features/c/format.ts:5`
 
-**Recommendation:** Extract to `@/lib/format/date.ts`
+**Note:** Same logic in 3 places
 
 ## Clean Features
 These features have no issues:

@@ -140,7 +140,7 @@ Return a structured list:
     {
       "components": ["IconButton", "ButtonIcon"],
       "reason": "Similar naming suggests overlapping functionality",
-      "recommendation": "Review and potentially merge"
+      "note": "Similar naming, possible overlap"
     }
   ]
 }

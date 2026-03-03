@@ -11,7 +11,6 @@ allowed-tools:
   - Read
   - Grep
   - Glob
-  - Bash
   - AskUserQuestion
 argument-hint: "[scope: features | server | ui | stores | all]"
 model: opus
@@ -104,6 +103,28 @@ After all questions answered, create action plan:
 3. [ ] Update documentation for [Z]
 ```
 
+### Step 4: Final Confirmation
+
+After the report is generated, you MUST ask the user to confirm before ANY cleanup:
+
+```
+AskUserQuestion(questions=[{
+  question: "Ready to execute cleanup? This will delete {N} items listed above.",
+  header: "Confirm",
+  options: [
+    {label: "Execute", description: "Create git backup branch and delete confirmed items"},
+    {label: "Cancel", description: "Do nothing — keep the report for later"}
+  ],
+  multiSelect: false
+}])
+
+# STOP HERE. Wait for user response.
+# Only if user selects "Execute" → spawn cleanup-executor for EACH confirmed item.
+# If user selects "Cancel" → end the session, keep the report.
+```
+
+**NEVER skip this step.** Even if the user already answered "Delete" on individual items in Step 2, you MUST ask for final confirmation before executing anything.
+
 ## Question Templates
 
 When asking about a feature, provide context:
@@ -160,8 +181,10 @@ flowchart TD
 
 ## Important Rules
 
-1. **Never delete without confirmation** — the cleanup-executor agent enforces this with git backup
-2. **ONE AskUserQuestion per message** — never call AskUserQuestion more than once in a single response. Never make parallel AskUserQuestion calls. Each response must contain at most one AskUserQuestion call, then STOP and wait. This is the most important rule.
-3. **Provide context** — show findings before asking
-4. **Accept "not sure"** — some things need more investigation, spawn usage-analyzer
-5. **Track decisions** — remember what user said for the report
+1. **This skill is READ-ONLY.** You MUST NOT delete, edit, or modify any files. You scan, ask, and report. All deletions happen ONLY through cleanup-executor, ONLY after Step 4 final confirmation.
+2. **Never delete without confirmation** — even after user answers "Delete" on individual items, you MUST show the full report and get final confirmation (Step 4) before launching cleanup-executor.
+3. **ONE AskUserQuestion per message** — never call AskUserQuestion more than once in a single response. Never make parallel AskUserQuestion calls. Each response must contain at most one AskUserQuestion call, then STOP and wait. This is the most important rule.
+4. **Provide context** — show findings before asking
+5. **Accept "not sure"** — some things need more investigation, spawn usage-analyzer
+6. **Track decisions** — remember what user said for the report
+7. **Do not use Bash** — you have no Bash access. Use only Read, Grep, Glob for analysis and AskUserQuestion for interaction.

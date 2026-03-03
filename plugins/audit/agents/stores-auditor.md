@@ -118,14 +118,14 @@ Return a structured analysis:
         "Direct async call in loginAction"
       ],
       "suspicion_level": "medium",
-      "notes": "selectLastError defined but never used. Consider removing."
+      "notes": "selectLastError defined but never used externally"
     }
   ],
   "duplicate_state": [
     {
       "field": "currentUser",
       "found_in": ["auth.store.ts", "profile.store.ts"],
-      "recommendation": "Consolidate to single source of truth"
+      "note": "Same field in two stores"
     }
   ],
   "summary": {

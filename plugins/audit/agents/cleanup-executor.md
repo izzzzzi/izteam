@@ -133,7 +133,8 @@ git branch -D cleanup/{feature_name}
 
 ## What NOT to Do
 
-- Delete without user confirmation in THIS conversation
+- Delete without FINAL user confirmation from the audit skill (Step 4)
+- Self-trigger — only the audit skill orchestrator may launch you after final confirmation
 - Delete core infrastructure (auth, db, config)
 - Delete without git backup
 - Leave broken imports
