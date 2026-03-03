@@ -11,6 +11,7 @@
 [![Auto Version](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml)
 [![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izTeam)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](LICENSE)
+[![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat&colorA=18181B&colorB=28CF8D)](CONTRIBUTING.md)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-purple?style=flat&colorA=18181B&colorB=7C3AED)](https://claude.ai/code)
 
 <br />
@@ -25,6 +26,72 @@
 
 **izteam** is an independent plugin marketplace for [Claude Code](https://claude.ai/code).
 Each plugin adds slash commands, agents, and ready-to-use workflows: from building features with an AI team to auditing outdated code.
+
+---
+
+## 🗺 How It Works
+
+```mermaid
+graph TD
+    subgraph Install
+        A["1. Add marketplace<br/><code>/plugin marketplace add izzzzzi/izTeam</code>"]
+        B["2. Install plugins<br/><code>/plugin install team@izteam</code>"]
+        A --> B
+    end
+
+    B --> C{"Choose a workflow"}
+
+    subgraph "/build &mdash; Team"
+        D1["📋 Brief &mdash; interview to clarify scope"]
+        D2["📐 Plan &mdash; architect designs tasks"]
+        D3["👨‍💻 Code &mdash; parallel coders implement"]
+        D4["🔍 Review &mdash; security + logic + quality"]
+        D5["✅ Commit &mdash; approved changes merged"]
+        D1 --> D2 --> D3 --> D4 --> D5
+    end
+
+    subgraph "/think &mdash; Think"
+        E1["🔬 Decompose into aspects"]
+        E2["🧠 Parallel expert analysis"]
+        E3["📄 Unified design document"]
+        E1 --> E2 --> E3
+    end
+
+    subgraph "/arena &mdash; Arena"
+        F1["📚 Research context"]
+        F2["🎭 Experts debate"]
+        F3["🤝 Consensus reached"]
+        F1 --> F2 --> F3
+    end
+
+    subgraph "/audit &mdash; Audit"
+        G1["🔎 Scan codebase"]
+        G2["💬 Interactive review with user"]
+        G3["🧹 Cleanup confirmed items"]
+        G1 --> G2 --> G3
+    end
+
+    C --> D1
+    C --> E1
+    C --> F1
+    C --> G1
+```
+
+**Example workflows:**
+
+```bash
+# Build a feature with an AI team
+/build "Add user settings page with profile editing"
+
+# Think through architecture before coding
+/think "Migrate from REST to GraphQL — trade-offs and plan"
+
+# Get expert opinions via structured debate
+/arena "Microservices vs monolith for our SaaS?"
+
+# Find and clean up dead code
+/audit
+```
 
 ---
 
@@ -204,7 +271,8 @@ izteam/
 │   ├── validate.yml
 │   ├── release.yml
 │   └── auto-version.yml
-└── LICENSE
+├── CODE_OF_CONDUCT.md
+└── CONTRIBUTING.md
 ```
 
 ---
@@ -257,8 +325,3 @@ The script updates `plugin.json` and `.claude-plugin/marketplace.json` together.
 rm -rf ~/.claude/plugins/cache/izteam/
 ```
 
----
-
-## 📝 License
-
-[MIT](LICENSE)

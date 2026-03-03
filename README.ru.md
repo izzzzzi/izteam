@@ -11,6 +11,7 @@
 [![Auto Version](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml)
 [![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izTeam)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](LICENSE)
+[![Contributing](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat&colorA=18181B&colorB=28CF8D)](CONTRIBUTING.md)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Plugin-purple?style=flat&colorA=18181B&colorB=7C3AED)](https://claude.ai/code)
 
 <br />
@@ -25,6 +26,72 @@
 
 **izteam** — независимый маркетплейс плагинов для [Claude Code](https://claude.ai/code).
 Каждый плагин добавляет slash-команды, агентов и готовые workflow: от реализации фич командой AI-агентов до аудита устаревшего кода.
+
+---
+
+## 🗺 Как это работает
+
+```mermaid
+graph TD
+    subgraph Установка
+        A["1. Добавить marketplace<br/><code>/plugin marketplace add izzzzzi/izTeam</code>"]
+        B["2. Установить плагины<br/><code>/plugin install team@izteam</code>"]
+        A --> B
+    end
+
+    B --> C{"Выбрать workflow"}
+
+    subgraph "/build &mdash; Team"
+        D1["📋 Brief &mdash; интервью для уточнения скоупа"]
+        D2["📐 Plan &mdash; архитектор проектирует задачи"]
+        D3["👨‍💻 Code &mdash; параллельные кодеры реализуют"]
+        D4["🔍 Review &mdash; security + logic + quality"]
+        D5["✅ Commit &mdash; одобренные изменения мерджатся"]
+        D1 --> D2 --> D3 --> D4 --> D5
+    end
+
+    subgraph "/think &mdash; Think"
+        E1["🔬 Декомпозиция на аспекты"]
+        E2["🧠 Параллельный экспертный анализ"]
+        E3["📄 Единый design-документ"]
+        E1 --> E2 --> E3
+    end
+
+    subgraph "/arena &mdash; Arena"
+        F1["📚 Исследование контекста"]
+        F2["🎭 Эксперты спорят"]
+        F3["🤝 Достигнут консенсус"]
+        F1 --> F2 --> F3
+    end
+
+    subgraph "/audit &mdash; Audit"
+        G1["🔎 Сканирование кодовой базы"]
+        G2["💬 Интерактивный обзор с пользователем"]
+        G3["🧹 Очистка подтверждённых элементов"]
+        G1 --> G2 --> G3
+    end
+
+    C --> D1
+    C --> E1
+    C --> F1
+    C --> G1
+```
+
+**Примеры использования:**
+
+```bash
+# Собрать фичу командой AI-агентов
+/build "Добавь страницу настроек пользователя с редактированием профиля"
+
+# Продумать архитектуру до кодинга
+/think "Миграция с REST на GraphQL — компромиссы и план"
+
+# Получить мнения экспертов через структурированные дебаты
+/arena "Микросервисы или монолит для нашего SaaS?"
+
+# Найти и почистить мёртвый код
+/audit
+```
 
 ---
 
@@ -204,7 +271,8 @@ izteam/
 │   ├── validate.yml
 │   ├── release.yml
 │   └── auto-version.yml
-└── LICENSE
+├── CODE_OF_CONDUCT.md
+└── CONTRIBUTING.md
 ```
 
 ---
@@ -257,8 +325,3 @@ izteam/
 rm -rf ~/.claude/plugins/cache/izteam/
 ```
 
----
-
-## 📝 Лицензия
-
-[MIT](LICENSE)
