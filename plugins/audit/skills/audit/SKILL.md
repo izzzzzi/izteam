@@ -11,6 +11,7 @@ allowed-tools:
   - Read
   - Grep
   - Glob
+  - Bash
 argument-hint: "[scope: features | server | ui | stores | all]"
 model: opus
 ---
@@ -74,10 +75,10 @@ AskUserQuestion(questions=[{
   question: "Что делаем с {feature_name}?",
   header: "Решение",
   options: [
-    {label: "Удалить", description: "Мёртвый код — удалить"},
-    {label: "Deprecated", description: "Скоро удалим — пометить deprecated"},
-    {label: "Оставить", description: "Активная фича — оставить"},
-    {label: "Не уверен", description: "Нужен глубокий анализ"}
+    {label: "Удалить", description: "Неиспользуемый код — удалить из кодовой базы"},
+    {label: "Deprecated", description: "Пометить как deprecated, запланировать удаление"},
+    {label: "Оставить", description: "Используется или запланирован к доработке"},
+    {label: "Не уверен", description: "Требуется детальный анализ зависимостей"}
   ],
   multiSelect: false
 }])
@@ -124,11 +125,11 @@ After the report, you MUST get final confirmation before ANY cleanup. Call AskUs
 
 ```
 AskUserQuestion(questions=[{
-  question: "Готовы к очистке? Будет удалено {N} элементов из списка выше.",
-  header: "Подтверждение",
+  question: "Подтвердите удаление {N} элементов. Будет создана резервная ветка перед изменениями.",
+  header: "Cleanup",
   options: [
-    {label: "Выполнить", description: "Создать git backup branch и удалить подтверждённые элементы"},
-    {label: "Отмена", description: "Ничего не делать — оставить отчёт"}
+    {label: "Подтвердить", description: "Создать backup-ветку и выполнить удаление"},
+    {label: "Отменить", description: "Отложить — сохранить отчёт без изменений"}
   ],
   multiSelect: false
 }])
@@ -139,6 +140,60 @@ AskUserQuestion(questions=[{
 ```
 
 **NEVER skip this step.** Even if the user already answered "Удалить" on individual items, you MUST show the report and get final confirmation.
+
+### Step 5: Merge to Main
+
+After ALL cleanup-executors finish, ask the user:
+
+```
+AskUserQuestion(questions=[{
+  question: "Cleanup выполнен. Влить cleanup-ветки в основную ветку?",
+  header: "Merge",
+  options: [
+    {label: "Влить в main", description: "Merge и push в основную ветку"},
+    {label: "Оставить ветки", description: "Не сливать — оставить для ручной проверки"}
+  ],
+  multiSelect: false
+}])
+
+# STOP HERE. Wait for user response.
+```
+
+If user selects "Слить":
+1. Determine the main branch name (main or master)
+2. For each cleanup branch, run via Task with Bash:
+```bash
+git checkout {main_branch}
+git merge cleanup/{feature_name} --no-ff -m "chore: merge cleanup/{feature_name} into {main_branch}"
+```
+3. Push: `git push`
+4. Proceed to Step 6.
+
+If user selects "Не сливать" → skip to end, report cleanup branches for manual review.
+
+### Step 6: Delete Cleanup Branches
+
+After merge, ask the user:
+
+```
+AskUserQuestion(questions=[{
+  question: "Cleanup-ветки влиты в main. Удалить отработанные ветки?",
+  header: "Branches",
+  options: [
+    {label: "Удалить ветки", description: "Удалить локально и на remote"},
+    {label: "Сохранить", description: "Оставить ветки для истории"}
+  ],
+  multiSelect: false
+}])
+
+# STOP HERE. Wait for user response.
+```
+
+If user selects "Удалить", run via Task with Bash for each branch:
+```bash
+git branch -d cleanup/{feature_name}
+git push origin --delete cleanup/{feature_name} 2>/dev/null || true
+```
 
 ## Scope Options
 
@@ -186,4 +241,4 @@ flowchart TD
 4. **One item per turn** — show one finding, ask one question via AskUserQuestion, STOP. Do not proceed to the next item until the user responds.
 5. **Accept "Не уверен"** — some things need more investigation, spawn usage-analyzer
 6. **Track decisions** — remember what user said for the report
-7. **Do not use Bash** — you have no Bash access. Use only Read, Grep, Glob for analysis.
+7. **Bash only for git** — use Bash only for git operations in Steps 5-6 (merge, push, branch delete). For analysis use Read, Grep, Glob.
