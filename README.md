@@ -99,10 +99,10 @@ graph TD
 
 | Plugin | Version | Description | Command |
 |--------|---------|-------------|---------|
-| 🤖 **[team](#-team)** | `0.3.4` | Build features with an AI agent team and built-in review gates. | `/build` |
-| 🧠 **[think](#-think)** | `1.1.4` | Plan complex tasks before coding with structured expert analysis. | `/think` |
-| 🎭 **[arena](#-arena)** | `1.1.4` | Compare expert viewpoints and converge on a clear decision. | `/arena` |
-| 🧹 **[audit](#-audit)** | `0.1.6` | Find dead and outdated code with an interactive audit. | `/audit` |
+| 🤖 **[team](#-team)** | `0.3.5` | Build features with an AI agent team and built-in review gates. | `/build` |
+| 🧠 **[think](#-think)** | `1.1.5` | Plan complex tasks before coding with structured expert analysis. | `/think` |
+| 🎭 **[arena](#-arena)** | `1.1.5` | Compare expert viewpoints and converge on a clear decision. | `/arena` |
+| 🧹 **[audit](#-audit)** | `0.1.7` | Find dead and outdated code with an interactive audit. | `/audit` |
 
 ---
 
