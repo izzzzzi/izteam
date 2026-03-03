@@ -11,7 +11,6 @@ permissions:
 jobs:
   auto-version:
     runs-on: ubuntu-latest
-    # Skip if commit was made by this workflow (prevent loops)
     if: "!contains(github.event.head_commit.message, '[auto-version]')"
 
     steps:
@@ -28,126 +27,108 @@ jobs:
       - name: Detect changes and bump versions
         id: version
         run: |
+          MARKETPLACE_JSON=".claude-plugin/marketplace.json"
           PLUGINS=("team" "think" "arena" "audit")
-          BUMPED=""
-          TAGS=""
+          CHANGED_PLUGINS=""
+          GLOBAL_BUMP="patch"
 
+          # Find last unified tag
+          LAST_TAG=$(git tag -l "v*" --sort=-v:refname | head -1)
+          if [ -z "$LAST_TAG" ]; then
+            DIFF_REF=$(git rev-list --max-parents=0 HEAD)
+          else
+            DIFF_REF="$LAST_TAG"
+          fi
+
+          # Detect which plugins changed and determine bump type
           for plugin in "${PLUGINS[@]}"; do
             PLUGIN_DIR="plugins/${plugin}"
             PLUGIN_JSON="${PLUGIN_DIR}/.claude-plugin/plugin.json"
-            MARKETPLACE_JSON=".claude-plugin/marketplace.json"
 
-            # Find last tag for this plugin
-            LAST_TAG=$(git tag -l "${plugin}-v*" --sort=-v:refname | head -1)
-
-            if [ -z "$LAST_TAG" ]; then
-              # No tag yet — check if plugin dir has any changes since initial commit
-              CHANGES=$(git log --oneline -- "$PLUGIN_DIR" | head -1)
-              if [ -z "$CHANGES" ]; then
-                continue
-              fi
-              DIFF_REF=$(git rev-list --max-parents=0 HEAD)
-            else
-              DIFF_REF="$LAST_TAG"
-            fi
-
-            # Check if there are changes since last tag
             CHANGED_FILES=$(git diff --name-only "$DIFF_REF"..HEAD -- "$PLUGIN_DIR" 2>/dev/null || true)
             if [ -z "$CHANGED_FILES" ]; then
               continue
             fi
 
-            # Get current version
+            # Bump individual plugin version (patch only — keeps marketplace in sync)
             CURRENT=$(jq -r '.version' "$PLUGIN_JSON")
             IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+            PATCH=$((PATCH + 1))
+            NEW_PLUGIN_VERSION="${MAJOR}.${MINOR}.${PATCH}"
 
-            # Parse commits for bump type
-            COMMITS=$(git log --format="%s" "$DIFF_REF"..HEAD -- "$PLUGIN_DIR" 2>/dev/null || true)
-            BUMP="patch"
-
-            while IFS= read -r msg; do
-              if echo "$msg" | grep -qiE "BREAKING CHANGE|^feat!:|^fix!:"; then
-                BUMP="major"
-                break
-              elif echo "$msg" | grep -qiE "^feat(\(.+\))?:"; then
-                BUMP="minor"
-              fi
-            done <<< "$COMMITS"
-
-            # Calculate new version
-            case "$BUMP" in
-              major)
-                MAJOR=$((MAJOR + 1))
-                MINOR=0
-                PATCH=0
-                ;;
-              minor)
-                MINOR=$((MINOR + 1))
-                PATCH=0
-                ;;
-              patch)
-                PATCH=$((PATCH + 1))
-                ;;
-            esac
-
-            NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
-
-            # Update plugin.json
-            jq --arg v "$NEW_VERSION" '.version = $v' "$PLUGIN_JSON" > tmp.json && mv tmp.json "$PLUGIN_JSON"
-
-            # Update marketplace.json
-            jq --arg name "$plugin" --arg v "$NEW_VERSION" \
+            jq --arg v "$NEW_PLUGIN_VERSION" '.version = $v' "$PLUGIN_JSON" > tmp.json && mv tmp.json "$PLUGIN_JSON"
+            jq --arg name "$plugin" --arg v "$NEW_PLUGIN_VERSION" \
               '(.plugins[] | select(.name == $name)).version = $v' \
               "$MARKETPLACE_JSON" > tmp.json && mv tmp.json "$MARKETPLACE_JSON"
 
-            # Update version in README.md and README.ru.md
-            sed -i "s/\(\[${plugin}\](#[^)]*)\*\* | \)\`[0-9]*\.[0-9]*\.[0-9]*\`/\1\`${NEW_VERSION}\`/" README.md README.ru.md
-
-            BUMPED="${BUMPED}${plugin} v${NEW_VERSION} (${BUMP})\n"
-            TAGS="${TAGS} ${plugin}-v${NEW_VERSION}"
-
-            echo "${plugin}_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-            echo "${plugin}_bump=${BUMP}" >> "$GITHUB_OUTPUT"
+            CHANGED_PLUGINS="${CHANGED_PLUGINS}- **${plugin}** v${NEW_PLUGIN_VERSION}\n"
           done
 
-          if [ -z "$BUMPED" ]; then
+          if [ -z "$CHANGED_PLUGINS" ]; then
             echo "bumped=false" >> "$GITHUB_OUTPUT"
-            echo "No version bumps needed"
-          else
-            echo "bumped=true" >> "$GITHUB_OUTPUT"
-            echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
-            echo -e "Bumped:\n${BUMPED}"
+            echo "No plugin changes detected"
+            exit 0
           fi
+
+          # Parse commits for unified bump type
+          COMMITS=$(git log --format="%s" "$DIFF_REF"..HEAD -- plugins/ 2>/dev/null || true)
+          while IFS= read -r msg; do
+            if echo "$msg" | grep -qiE "BREAKING CHANGE|^feat!:|^fix!:"; then
+              GLOBAL_BUMP="major"
+              break
+            elif echo "$msg" | grep -qiE "^feat(\(.+\))?:"; then
+              GLOBAL_BUMP="minor"
+            fi
+          done <<< "$COMMITS"
+
+          # Bump unified version
+          CURRENT_VERSION=$(jq -r '.version' "$MARKETPLACE_JSON")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          case "$GLOBAL_BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          jq --arg v "$NEW_VERSION" '.version = $v' "$MARKETPLACE_JSON" > tmp.json && mv tmp.json "$MARKETPLACE_JSON"
+
+          echo "bumped=true" >> "$GITHUB_OUTPUT"
+          echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "changed_plugins<<EOF" >> "$GITHUB_OUTPUT"
+          echo -e "$CHANGED_PLUGINS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "bump_type=${GLOBAL_BUMP}" >> "$GITHUB_OUTPUT"
+
+          echo "Unified version: v${NEW_VERSION} (${GLOBAL_BUMP})"
+          echo -e "Changed plugins:\n${CHANGED_PLUGINS}"
 
       - name: Commit and tag
         if: steps.version.outputs.bumped == 'true'
         run: |
-          git add .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json README.md README.ru.md
-          git commit -m "$(cat <<'EOF'
-          chore: bump plugin versions [auto-version]
-
-          ${{ steps.version.outputs.tags }}
+          git add .claude-plugin/marketplace.json plugins/*/.claude-plugin/plugin.json
+          git commit -m "$(cat <<EOF
+          chore: bump to v${{ steps.version.outputs.version }} [auto-version]
           EOF
           )"
 
-          # Create tags
-          for tag in ${{ steps.version.outputs.tags }}; do
-            git tag "$tag"
-          done
-
+          git tag "v${{ steps.version.outputs.version }}"
           git push origin main --tags
 
-      - name: Create GitHub Releases
+      - name: Create GitHub Release
         if: steps.version.outputs.bumped == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for tag in ${{ steps.version.outputs.tags }}; do
-            plugin=$(echo "$tag" | sed 's/-v.*//')
-            version=$(echo "$tag" | sed 's/.*-v//')
-            gh release create "$tag" \
-              --title "${plugin} v${version}" \
-              --generate-notes \
-              --notes-start-tag "$(git tag -l "${plugin}-v*" --sort=-v:refname | sed -n '2p')" \
-              2>/dev/null || true
-          done
+          gh release create "v${{ steps.version.outputs.version }}" \
+            --title "v${{ steps.version.outputs.version }}" \
+            --notes "$(cat <<'EOF'
+          ## Plugins updated
+
+          ${{ steps.version.outputs.changed_plugins }}
+
+          ---
+          Install: `/plugin marketplace add izzzzzi/izTeam`
+          EOF
+          )"

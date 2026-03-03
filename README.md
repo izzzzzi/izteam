@@ -7,7 +7,6 @@
 **A Claude Code plugin marketplace for AI agent teams, expert debates, deep planning, and interactive code audits**
 
 [![Validate](https://github.com/izzzzzi/izTeam/actions/workflows/validate.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/validate.yml)
-[![Release](https://github.com/izzzzzi/izTeam/actions/workflows/release.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/release.yml)
 [![Auto Version](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml)
 [![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izTeam)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](LICENSE)
@@ -269,7 +268,6 @@ izteam/
 │   └── bump-version.sh
 ├── .github/workflows/
 │   ├── validate.yml
-│   ├── release.yml
 │   └── auto-version.yml
 ├── CODE_OF_CONDUCT.md
 └── CONTRIBUTING.md
@@ -299,20 +297,17 @@ Plugins `team` and `arena` require the experimental Agent Teams feature:
 ### Versioning
 
 ```bash
-# Bump patch version
-./scripts/bump-version.sh team patch
-
-# Bump minor version
-./scripts/bump-version.sh think minor
+# Bump unified version
+./scripts/bump-version.sh patch
+./scripts/bump-version.sh minor
 ```
 
-The script updates `plugin.json` and `.claude-plugin/marketplace.json` together.
+The repo uses a single unified version (`v0.0.1`, `v0.1.0`, etc.). Individual plugin versions are bumped automatically.
 
 ### CI/CD
 
-- `validate.yml` — structure and consistency checks
-- `release.yml` — release pipeline
-- `auto-version.yml` — automatic version bump from Conventional Commits
+- `validate.yml` — structure and consistency checks on PRs and pushes
+- `auto-version.yml` — automatic unified version bump, tagging, and release
 
 ---
 

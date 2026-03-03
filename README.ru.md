@@ -7,7 +7,6 @@
 **Маркетплейс плагинов для Claude Code: команды AI-агентов, экспертные дебаты, глубокое планирование и интерактивный аудит кода**
 
 [![Validate](https://github.com/izzzzzi/izTeam/actions/workflows/validate.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/validate.yml)
-[![Release](https://github.com/izzzzzi/izTeam/actions/workflows/release.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/release.yml)
 [![Auto Version](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml/badge.svg)](https://github.com/izzzzzi/izTeam/actions/workflows/auto-version.yml)
 [![Plugins](https://img.shields.io/badge/Plugins-4-blue?style=flat&colorA=18181B&colorB=28CF8D)](https://github.com/izzzzzi/izTeam)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat&colorA=18181B&colorB=28CF8D)](LICENSE)
@@ -269,7 +268,6 @@ izteam/
 │   └── bump-version.sh
 ├── .github/workflows/
 │   ├── validate.yml
-│   ├── release.yml
 │   └── auto-version.yml
 ├── CODE_OF_CONDUCT.md
 └── CONTRIBUTING.md
@@ -299,20 +297,17 @@ izteam/
 ### Версионирование
 
 ```bash
-# Bump patch version
-./scripts/bump-version.sh team patch
-
-# Bump minor version
-./scripts/bump-version.sh think minor
+# Bump единой версии
+./scripts/bump-version.sh patch
+./scripts/bump-version.sh minor
 ```
 
-Скрипт обновляет `plugin.json` и `.claude-plugin/marketplace.json` синхронно.
+Репозиторий использует единую версию (`v0.0.1`, `v0.1.0` и т.д.). Версии отдельных плагинов обновляются автоматически.
 
 ### CI/CD
 
-- `validate.yml` — проверки структуры и консистентности
-- `release.yml` — release pipeline
-- `auto-version.yml` — автоматический bump версий по Conventional Commits
+- `validate.yml` — проверки структуры и консистентности на PR и push
+- `auto-version.yml` — автоматический bump единой версии, теги и релиз
 
 ---
 
