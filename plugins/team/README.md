@@ -138,11 +138,21 @@ team/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── skills/
-│   ├── build/SKILL.md
-│   ├── conventions/SKILL.md
-│   └── brief/
-│       ├── SKILL.md
-│       └── references/interview-principles.md
+│   ├── build/
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── complexity-classification.md
+│   │       ├── risk-analysis-protocol.md
+│   │       ├── state-ownership.md
+│   │       ├── state-template.md
+│   │       ├── summary-report-template.md
+│   │       └── teardown-fsm.md
+│   ├── brief/
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── brief-template.md
+│   │       └── interview-principles.md
+│   └── conventions/SKILL.md
 ├── agents/
 │   ├── supervisor.md
 │   ├── codebase-researcher.md
@@ -156,7 +166,10 @@ team/
 │   └── risk-tester.md
 ├── references/
 │   ├── gold-standard-template.md
-│   └── risk-testing-example.md
+│   ├── reviewer-protocol.md
+│   ├── risk-testing-example.md
+│   ├── status-icons.md
+│   └── supervisor-playbooks.md
 ├── README.md
 └── README.ru.md
 ```

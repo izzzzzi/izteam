@@ -53,12 +53,12 @@ export CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
 
 ```mermaid
 flowchart TD
-    P0["Phase 0: Expert Selection<br/>3-5 реальных экспертов + Devil's Advocate"]
-    P1["Phase 1: Reconnaissance<br/>2-4 researcher параллельно"]
-    P2["Phase 2: Arena Launch<br/>Briefing packet + Agent Team"]
-    P3["Phase 3: Organic Debates<br/>Эксперты спорят peer-to-peer"]
-    P4{"Phase 4: Convergence<br/>Консенсус стабилизировался?"}
-    P5["Phase 5: Synthesis<br/>Verdict + action plan"]
+    P0["Фаза 0: Подбор экспертов<br/>3-5 реальных экспертов + Адвокат дьявола"]
+    P1["Фаза 1: Разведка<br/>2-4 researcher параллельно"]
+    P2["Фаза 2: Запуск арены<br/>Briefing packet + Agent Team"]
+    P3["Фаза 3: Органические дебаты<br/>Эксперты спорят peer-to-peer"]
+    P4{"Фаза 4: Конвергенция<br/>Консенсус стабилизировался?"}
+    P5["Фаза 5: Синтез<br/>Вердикт + план действий"]
     DOC["docs/arena/YYYY-MM-DD-topic.md"]
 
     P0 --> P1 --> P2 --> P3 --> P4
@@ -66,7 +66,7 @@ flowchart TD
     P4 -->|Да| P5 --> DOC
 ```
 
-Во время дебатов: эксперты дают позицию с self-critique, оспаривают аргументы друг друга, меняют позицию при убедительных доводах. Devil's Advocate может наложить veto на критические изъяны. Модератор даёт live commentary по ключевым моментам.
+Во время дебатов: эксперты дают позицию с самокритикой, оспаривают аргументы друг друга, меняют позицию при убедительных доводах. Адвокат дьявола может наложить вето на критические изъяны. Модератор комментирует ключевые моменты в реальном времени.
 
 ## Structure
 
@@ -75,7 +75,12 @@ arena/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── skills/
-│   └── arena/SKILL.md
+│   └── arena/
+│       ├── SKILL.md
+│       └── references/
+│           ├── expert-selection-guide.md
+│           ├── live-commentary-rules.md
+│           └── synthesis-template.md
 ├── agents/
 │   ├── expert.md
 │   └── researcher.md
@@ -85,13 +90,13 @@ arena/
 
 ## Key Design Principles
 
-| Principle | Why |
-|-----------|-----|
-| **Real people** | Эксперты основаны на реальных публичных позициях |
-| **Intentional conflict** | Противоположные мнения вскрывают скрытые допущения |
-| **Direct communication** | Эксперты спорят peer-to-peer |
-| **Position change = strength** | Сильные аргументы могут менять позицию |
-| **Devil's Advocate with veto** | Защита от groupthink |
+| Принцип | Зачем |
+|---------|-------|
+| **Реальные люди** | Эксперты основаны на реальных публичных позициях |
+| **Намеренный конфликт** | Противоположные мнения вскрывают скрытые допущения |
+| **Прямая коммуникация** | Эксперты спорят peer-to-peer |
+| **Смена позиции = сила** | Сильные аргументы могут менять позицию |
+| **Адвокат дьявола с вето** | Защита от группового мышления |
 | **Live commentary** | Вы видите эволюцию рассуждений в реальном времени |
 
 ## When to Use

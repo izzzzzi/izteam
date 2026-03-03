@@ -41,19 +41,19 @@
 
 ```mermaid
 flowchart TD
-    D["1. Discovery<br/>feature-scanner находит подозрительные участки"]
-    I{"2. Interview<br/>&quot;Это ещё используется?&quot;"}
-    DEL["Delete"]
+    D["1. Обнаружение<br/>feature-scanner находит подозрительные участки"]
+    I{"2. Интервью<br/>&quot;Это ещё используется?&quot;"}
+    DEL["Удалить"]
     DEP["Deprecated"]
-    KEEP["Keep"]
-    NS["Not sure<br/>usage-analyzer"]
-    C["3. Cleanup<br/>git branch + commit + TypeScript check"]
+    KEEP["Оставить"]
+    NS["Не уверен<br/>usage-analyzer"]
+    C["3. Очистка<br/>git branch + commit + TypeScript check"]
 
     D --> I
     I --> DEL --> C
     I --> DEP
     I --> KEEP
-    I --> NS -->|deep analysis| I
+    I --> NS -->|глубокий анализ| I
 ```
 
 ## Agents

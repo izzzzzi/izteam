@@ -75,7 +75,12 @@ arena/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── skills/
-│   └── arena/SKILL.md
+│   └── arena/
+│       ├── SKILL.md
+│       └── references/
+│           ├── expert-selection-guide.md
+│           ├── live-commentary-rules.md
+│           └── synthesis-template.md
 ├── agents/
 │   ├── expert.md
 │   └── researcher.md

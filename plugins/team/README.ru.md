@@ -58,31 +58,31 @@ Team Lead оркестрирует полный поток реализации.
 
 ```mermaid
 flowchart TD
-    subgraph Phase1["Phase 1: Discovery & Planning"]
-        R["Parallel Research<br/>Codebase + Reference researchers"]
-        CL{"Complexity<br/>Classification"}
+    subgraph Phase1["Фаза 1: Исследование и планирование"]
+        R["Параллельное исследование<br/>Codebase + Reference researchers"]
+        CL{"Классификация<br/>сложности"}
         R --> CL
         CL -->|SIMPLE| S5
         CL -->|MEDIUM / COMPLEX| PV
-        PV["Plan Validation<br/>Tech Lead checks scope & architecture"]
-        RA["Risk Analysis<br/>Tech Lead + Risk Testers"]
+        PV["Валидация плана<br/>Tech Lead проверяет скоуп и архитектуру"]
+        RA["Анализ рисков<br/>Tech Lead + Risk Testers"]
         PV --> RA
     end
 
-    subgraph Phase2["Phase 2: Execution"]
-        S5["Coding with Gold Standards<br/>Parallel coders implement"]
-        CC["Convention Checks<br/>naming, imports, schema"]
-        SR{"Specialized Review"}
-        AA["Architectural Approval<br/>Tech Lead sign-off"]
+    subgraph Phase2["Фаза 2: Реализация"]
+        S5["Кодинг по gold standards<br/>Параллельные кодеры реализуют"]
+        CC["Проверка конвенций<br/>именование, импорты, схема"]
+        SR{"Специализированный<br/>review"}
+        AA["Архитектурное одобрение<br/>Tech Lead sign-off"]
         S5 --> CC --> SR --> AA
         SR -.- U["SIMPLE: 1 Unified Reviewer"]
         SR -.- SP["MEDIUM/COMPLEX: Security + Logic + Quality"]
     end
 
-    subgraph Phase3["Phase 3: Completion"]
-        IV["Integration Verification<br/>build + tests"]
-        CU["Conventions Update<br/>patterns & review findings"]
-        SM["Summary Report"]
+    subgraph Phase3["Фаза 3: Завершение"]
+        IV["Интеграционная проверка<br/>build + tests"]
+        CU["Обновление конвенций<br/>паттерны и review findings"]
+        SM["Итоговый отчёт"]
         IV --> CU --> SM
     end
 
@@ -90,11 +90,11 @@ flowchart TD
     AA --> IV
 ```
 
-| Level | When | What changes |
-|-------|------|-------------|
-| **SIMPLE** | 1 layer, no behavior changes, <3 tasks | Lightweight team, single reviewer |
-| **MEDIUM** | 2+ layers, modifies existing code, 3+ tasks | Full team, specialized reviewers, risk analysis |
-| **COMPLEX** | 3+ layers, touches auth/payments, 5+ tasks | Full team + deep analysis and risk testing |
+| Уровень | Когда | Что меняется |
+|---------|-------|--------------|
+| **SIMPLE** | 1 слой, нет изменений поведения, <3 задач | Лёгкая команда, один reviewer |
+| **MEDIUM** | 2+ слоя, изменения существующего кода, 3+ задач | Полная команда, специализированные reviewers, анализ рисков |
+| **COMPLEX** | 3+ слоя, затрагивает auth/payments, 5+ задач | Полная команда + глубокий анализ и тестирование рисков |
 
 ---
 
@@ -109,27 +109,27 @@ flowchart TD
 
 ## Complexity Levels
 
-| Level | Team Size | Reviewers | Risk Analysis | Tech Lead Validation |
-|-------|-----------|-----------|---------------|---------------------|
-| **SIMPLE** | 4 agents | 1 unified | Skipped | Skipped |
-| **MEDIUM** | 5-7 agents | 3 specialized | Yes | Yes |
-| **COMPLEX** | 6-9+ agents | 3 specialized + deep analysis | Full + risk testers | Yes + user informed on key decisions |
+| Уровень | Размер команды | Reviewers | Анализ рисков | Валидация Tech Lead |
+|---------|---------------|-----------|---------------|---------------------|
+| **SIMPLE** | 4 агента | 1 unified | Пропускается | Пропускается |
+| **MEDIUM** | 5-7 агентов | 3 специализированных | Да | Да |
+| **COMPLEX** | 6-9+ агентов | 3 специализированных + глубокий анализ | Полный + risk testers | Да + пользователь в курсе ключевых решений |
 
 ## Team Roles
 
-| Role | Lifetime | Purpose |
-|------|----------|---------|
-| **Lead** | Whole session | Оркестрирует delivery и работу команды |
-| **Supervisor** | Permanent | Мониторит liveness, loops и escalations |
-| **Codebase Researcher** | One-shot | Делает выжимку по структуре и конвенциям |
-| **Reference Researcher** | One-shot | Даёт качественные reference files |
-| **Tech Lead** | Permanent | Валидирует планы и архитектуру |
-| **Coder** | Per task | Реализует задачу и делает self-checks |
-| **Security Reviewer** | Permanent | Ищет exploitable vulnerabilities |
-| **Logic Reviewer** | Permanent | Ищет ошибки корректности и edge-cases |
-| **Quality Reviewer** | Permanent | Улучшает maintainability и consistency |
-| **Unified Reviewer** | Permanent | Универсальный reviewer для SIMPLE |
-| **Risk Tester** | One-shot | Проверяет явные риски целевыми проверками |
+| Роль | Время жизни | Назначение |
+|------|-------------|------------|
+| **Lead** | Вся сессия | Оркестрирует delivery и работу команды |
+| **Supervisor** | Постоянный | Мониторит liveness, loops и escalations |
+| **Codebase Researcher** | Разовый | Делает выжимку по структуре и конвенциям |
+| **Reference Researcher** | Разовый | Даёт качественные reference-файлы |
+| **Tech Lead** | Постоянный | Валидирует планы и архитектуру |
+| **Coder** | На задачу | Реализует задачу и делает self-checks |
+| **Security Reviewer** | Постоянный | Ищет эксплуатируемые уязвимости |
+| **Logic Reviewer** | Постоянный | Ищет ошибки корректности и edge-cases |
+| **Quality Reviewer** | Постоянный | Улучшает поддерживаемость и консистентность |
+| **Unified Reviewer** | Постоянный | Универсальный reviewer для SIMPLE |
+| **Risk Tester** | Разовый | Проверяет явные риски целевыми проверками |
 
 ## Structure
 
@@ -138,11 +138,21 @@ team/
 ├── .claude-plugin/
 │   └── plugin.json
 ├── skills/
-│   ├── build/SKILL.md
-│   ├── conventions/SKILL.md
-│   └── brief/
-│       ├── SKILL.md
-│       └── references/interview-principles.md
+│   ├── build/
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── complexity-classification.md
+│   │       ├── risk-analysis-protocol.md
+│   │       ├── state-ownership.md
+│   │       ├── state-template.md
+│   │       ├── summary-report-template.md
+│   │       └── teardown-fsm.md
+│   ├── brief/
+│   │   ├── SKILL.md
+│   │   └── references/
+│   │       ├── brief-template.md
+│   │       └── interview-principles.md
+│   └── conventions/SKILL.md
 ├── agents/
 │   ├── supervisor.md
 │   ├── codebase-researcher.md
@@ -156,7 +166,10 @@ team/
 │   └── risk-tester.md
 ├── references/
 │   ├── gold-standard-template.md
-│   └── risk-testing-example.md
+│   ├── reviewer-protocol.md
+│   ├── risk-testing-example.md
+│   ├── status-icons.md
+│   └── supervisor-playbooks.md
 ├── README.md
 └── README.ru.md
 ```
